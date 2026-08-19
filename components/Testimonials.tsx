@@ -3,62 +3,59 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   PRE-LAUNCH PLACEHOLDER.
+   FitVerse has not launched, so no user reviews exist yet. Nothing here is
+   presented as a customer quote, a rating, or a result.
+
+   At launch this array is replaced by real reviews synced from Google Reviews,
+   the Play Store and the App Store. The rating/source data shape needed for that
+   sync is a Phase 2 (UI) change — see AUDIT.md finding REV-04.
+──────────────────────────────────────────────────────────────────────────────*/
 const testimonials = [
   {
-    name: "Karan V.",
-    location: "Delhi",
-    text: "Been using it for 6 weeks. My sleep improved just by following the recovery tips. Didn't expect that from a fitness app.",
-    initials: "KV",
+    name: "Everything in one place",
+    location: "Our principle",
+    text: "Nutrition, training, sleep and recovery belong in one system — not five apps that never talk to each other.",
+    initials: "01",
     avatarBg: "#EEF2FF",
     avatarText: "#6366F1",
   },
   {
-    name: "Sneha R.",
-    location: "Pune",
-    text: "Finally an app that has poha and dal makhani. I stopped guessing my calories. The tracking actually makes sense now.",
-    initials: "SR",
-    avatarBg: "#fee2e2",
-    avatarText: "#dc2626",
-  },
-  {
-    name: "Mihir D.",
-    location: "Bengaluru",
-    text: "The AI coach noticed I was overtraining before I did. Told me to rest. I listened. My lifts went up the next week.",
-    initials: "MD",
+    name: "Your data stays yours",
+    location: "Our commitment",
+    text: "Encrypted in transit and at rest, with row-level access controls. We do not sell your health data, and we never will.",
+    initials: "02",
     avatarBg: "#d1fae5",
     avatarText: "#059669",
   },
   {
-    name: "Tanvi A.",
-    location: "Mumbai",
-    text: "Switched from using 3 apps to just this. The unified dashboard is genuinely impressive. Everything I need in one scroll.",
-    initials: "TA",
+    name: "Built for Indian kitchens",
+    location: "Our approach",
+    text: "Regional foods and real portions, so logging a meal does not mean translating it into something else first.",
+    initials: "03",
+    avatarBg: "#fee2e2",
+    avatarText: "#dc2626",
+  },
+  {
+    name: "Recovery counts as training",
+    location: "Our approach",
+    text: "Sleep and rest shape your results as much as the session does. FitVerse is built to treat them that way.",
+    initials: "04",
     avatarBg: "#ECFEFF",
     avatarText: "#06B6D4",
   },
   {
-    name: "Aditya S.",
-    location: "Hyderabad",
-    text: "Lost 5kg in 2 months. The deficit plan was simple to follow and the weekly check-ins kept me accountable.",
-    initials: "AS",
+    name: "Honest about where we are",
+    location: "Our promise",
+    text: "We are pre-launch. Nothing on this page claims a user, a result or a review that we do not yet have.",
+    initials: "05",
     avatarBg: "#fef3c7",
     avatarText: "#d97706",
   },
 ];
 
 const allTestimonials = [...testimonials, ...testimonials];
-
-function StarRating() {
-  return (
-    <div className="flex gap-0.5 mb-4">
-      {[...Array(5)].map((_, i) => (
-        <svg key={i} width="12" height="12" viewBox="0 0 12 12" fill="#C4956A">
-          <path d="M6 1l1.236 2.506L10 3.927l-2 1.95.472 2.75L6 7.25l-2.472 1.377L4 5.877l-2-1.95 2.764-.421L6 1z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
 
 export default function Testimonials() {
   const sectionRef = useRef(null);
@@ -83,7 +80,7 @@ export default function Testimonials() {
       ref={sectionRef}
       className="py-24 lg:py-32 overflow-hidden"
       style={{ backgroundColor: "#FDFCF9" }}
-      aria-label="User Testimonials"
+      aria-label="What we are building before launch"
     >
       <div className="max-w-7xl mx-auto px-6 mb-14">
         <motion.div
@@ -99,7 +96,7 @@ export default function Testimonials() {
               color: "#C4956A", marginBottom: "16px",
             }}
           >
-            What people are saying
+            Before launch
           </motion.p>
           <motion.h2
             variants={revealVariants}
@@ -111,7 +108,7 @@ export default function Testimonials() {
               lineHeight: 1.1,
             }}
           >
-            Real results. Real people.
+            Reviews arrive when our users do.
           </motion.h2>
         </motion.div>
       </div>
@@ -142,13 +139,11 @@ export default function Testimonials() {
                 style={{
                   width: "300px",
                   maxWidth: "320px",
-                  borderLeft: "3px solid #C4956A",
                   boxShadow: "0 2px 20px rgba(0,0,0,0.06)",
                 }}
               >
-                <StarRating />
                 <p style={{ color: "#111111", fontSize: "14px", lineHeight: 1.7, marginBottom: "20px" }}>
-                  &ldquo;{t.text}&rdquo;
+                  {t.text}
                 </p>
                 <div className="flex items-center gap-3">
                   <div

@@ -1,0 +1,2829 @@
+<title>FitVerse Login Notification Guide</title>
+<style>
+  /* ─────────────────────────────────────────────────────────────
+     FitVerse — Login Notification Implementation Guide
+     Print-first document. Palette taken from the FitVerse design
+     tokens in app/globals.css (warm neutrals + amber accent).
+     ───────────────────────────────────────────────────────────── */
+
+  :root {
+    --paper:      #FFFFFF;
+    --paper-warm: #FDFCF9;
+    --surface:    #F5F0E8;
+    --surface-2:  #EFE8DC;
+    --ink:        #1A1512;
+    --ink-2:      #45403A;
+    --ink-3:      #6B6560;
+    --ink-4:      #8C857D;
+    --dark:       #0F0D0A;
+    --rule:       #DED6C9;
+    --rule-soft:  #ECE5D9;
+
+    --accent:      #8A5F2E;   /* text-safe amber  */
+    --accent-line: #C4956A;   /* decorative amber */
+    --accent-bg:   #FBF4EA;
+
+    --warn:      #8A3324;
+    --warn-bg:   #FBF0EE;
+    --ok:        #3B6349;
+    --ok-bg:     #EFF5F0;
+    --info:      #2F4E6B;
+    --info-bg:   #EEF3F7;
+
+    --font-display: Georgia, "Times New Roman", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Mono", "Consolas", "SF Mono",
+                 Menlo, "DejaVu Sans Mono", monospace;
+  }
+
+  @page {
+    size: A4;
+    margin: 17mm 15mm 18mm 15mm;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 10.5pt;
+    line-height: 1.62;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .doc {
+    max-width: 190mm;
+    margin: 0 auto;
+    padding: 12mm 6mm 20mm;
+  }
+
+  /* ── Typography ─────────────────────────────────────────────── */
+
+  h1, h2, h3, h4 { text-wrap: balance; margin: 0; }
+
+  .sec-eyebrow {
+    font-family: var(--font-display);
+    font-size: 9.5pt;
+    font-style: italic;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+  }
+
+  h2.sec-title {
+    font-size: 19pt;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--ink);
+    padding-bottom: 9px;
+    border-bottom: 2px solid var(--accent-line);
+    margin-bottom: 16px;
+  }
+
+  h3 {
+    font-size: 12.5pt;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 22px 0 8px;
+    break-after: avoid;
+  }
+
+  h4 {
+    font-size: 10.5pt;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 16px 0 6px;
+    break-after: avoid;
+  }
+
+  h4.step {
+    font-family: var(--font-mono);
+    font-size: 10pt;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.01em;
+    text-transform: none;
+  }
+
+  p { margin: 0 0 9px; }
+  p.lead { font-size: 11.5pt; color: var(--ink-2); line-height: 1.6; }
+
+  strong { font-weight: 700; color: var(--ink); }
+  em { font-style: italic; }
+
+  ul, ol { margin: 0 0 10px; padding-left: 20px; }
+  li { margin-bottom: 5px; }
+  li::marker { color: var(--accent-line); }
+  ul ul, ol ol, ul ol, ol ul { margin-top: 5px; margin-bottom: 0; }
+
+  a { color: var(--accent); text-decoration: none; }
+
+  hr {
+    border: 0;
+    border-top: 1px solid var(--rule-soft);
+    margin: 20px 0;
+  }
+
+  /* ── Code ───────────────────────────────────────────────────── */
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface);
+    color: var(--ink);
+    padding: 1px 4px;
+    border-radius: 3px;
+    border: 1px solid var(--rule-soft);
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 8.6pt;
+    line-height: 1.55;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent-line);
+    border-radius: 4px;
+    padding: 11px 13px;
+    margin: 10px 0 13px;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    color: var(--ink);
+    break-inside: avoid;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+  }
+  pre.tight { font-size: 8.2pt; }
+  pre.flow {
+    background: var(--surface);
+    border-left-color: var(--ink-3);
+    color: var(--ink-2);
+  }
+
+  .filepath {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    color: var(--accent);
+    background: var(--accent-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid #EEDFC9;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* ── Tables ─────────────────────────────────────────────────── */
+
+  .table-wrap { overflow-x: auto; margin: 11px 0 14px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.2pt;
+    line-height: 1.45;
+  }
+
+  th {
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 700;
+    text-align: left;
+    padding: 7px 9px;
+    border: 1px solid var(--rule);
+    font-size: 8.8pt;
+    letter-spacing: 0.01em;
+  }
+
+  td {
+    padding: 7px 9px;
+    border: 1px solid var(--rule-soft);
+    color: var(--ink-2);
+    vertical-align: top;
+  }
+  td strong { color: var(--ink); }
+  tr { break-inside: avoid; }
+  td.yes { color: var(--ok); font-weight: 700; }
+  td.no  { color: var(--warn); font-weight: 700; }
+  td.ctr { text-align: center; }
+
+  /* ── Callout boxes ──────────────────────────────────────────── */
+
+  .box {
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--ink-3);
+    border-radius: 4px;
+    background: var(--paper-warm);
+    padding: 11px 14px;
+    margin: 13px 0;
+    break-inside: avoid;
+    font-size: 9.8pt;
+  }
+  .box p:last-child, .box ul:last-child, .box ol:last-child { margin-bottom: 0; }
+
+  .box-label {
+    font-family: var(--font-mono);
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .box.important { border-left-color: var(--accent-line); background: var(--accent-bg); }
+  .box.important .box-label { color: var(--accent); }
+
+  .box.warning { border-left-color: var(--warn); background: var(--warn-bg); }
+  .box.warning .box-label { color: var(--warn); }
+
+  .box.tip { border-left-color: var(--ok); background: var(--ok-bg); }
+  .box.tip .box-label { color: var(--ok); }
+
+  .box.why { border-left-color: var(--info); background: var(--info-bg); }
+  .box.why .box-label { color: var(--info); }
+
+  .box.todo { border-left-color: var(--dark); background: var(--surface); }
+  .box.todo .box-label { color: var(--dark); }
+
+  .box.rec {
+    border: 2px solid var(--ok);
+    border-left-width: 4px;
+    background: var(--ok-bg);
+  }
+  .box.rec .box-label { color: var(--ok); }
+
+  .box.fallback {
+    border: 1px dashed var(--ink-4);
+    border-left: 4px solid var(--ink-4);
+    background: var(--paper-warm);
+  }
+  .box.fallback .box-label { color: var(--ink-3); }
+
+  /* ── Concept block (WHAT / WHY / HOW / DO) ──────────────────── */
+
+  .concept {
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    background: var(--paper-warm);
+    padding: 0;
+    margin: 14px 0;
+    break-inside: avoid;
+    overflow: hidden;
+  }
+  .concept-head {
+    background: var(--surface);
+    padding: 7px 13px;
+    font-weight: 700;
+    font-size: 10pt;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink);
+  }
+  .concept-body { padding: 10px 13px 11px; font-size: 9.8pt; }
+  .concept-body dl { margin: 0; }
+  .concept-body dt {
+    font-family: var(--font-mono);
+    font-size: 7.8pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-top: 9px;
+  }
+  .concept-body dt:first-child { margin-top: 0; }
+  .concept-body dd { margin: 2px 0 0; color: var(--ink-2); }
+
+  /* ── Checklists ─────────────────────────────────────────────── */
+
+  .checklist {
+    list-style: none;
+    padding-left: 0;
+    margin: 9px 0 14px;
+  }
+  .checklist li {
+    position: relative;
+    padding-left: 26px;
+    margin-bottom: 7px;
+    font-size: 9.8pt;
+    break-inside: avoid;
+  }
+  .checklist li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 12px;
+    height: 12px;
+    border: 1.5px solid var(--ink-4);
+    border-radius: 2.5px;
+    background: var(--paper);
+  }
+  .checklist li .num {
+    font-family: var(--font-mono);
+    font-size: 8.4pt;
+    color: var(--ink-4);
+    margin-right: 5px;
+  }
+
+  .phase-head {
+    font-family: var(--font-mono);
+    font-size: 8.4pt;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dark);
+    background: var(--surface);
+    padding: 5px 10px;
+    border-radius: 3px;
+    margin: 18px 0 9px;
+    break-after: avoid;
+  }
+
+  /* ── Cover page ─────────────────────────────────────────────── */
+
+  .cover {
+    height: 252mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    break-after: page;
+    padding: 4mm 0 0;
+  }
+
+  .cover-mark {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .cover-mark .glyph {
+    width: 26px; height: 26px;
+    background: var(--dark);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .cover-mark .name {
+    font-size: 12pt;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .cover-mark .kind {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 7.8pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+
+  .cover-mid { padding: 0 0 6mm; }
+  .cover-rule {
+    width: 54px;
+    height: 3px;
+    background: var(--accent-line);
+    margin-bottom: 20px;
+  }
+  .cover h1 {
+    font-family: var(--font-display);
+    font-size: 33pt;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .cover .sub {
+    font-size: 12.5pt;
+    color: var(--ink-3);
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 118mm;
+    margin-bottom: 26px;
+  }
+  .cover .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 24px;
+  }
+  .cover .chip {
+    font-family: var(--font-mono);
+    font-size: 8.2pt;
+    padding: 4px 10px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 100px;
+    color: var(--ink-2);
+  }
+  .cover .abstract {
+    font-size: 10pt;
+    color: var(--ink-2);
+    line-height: 1.65;
+    max-width: 128mm;
+    padding-left: 14px;
+    border-left: 2px solid var(--rule);
+  }
+
+  .cover-foot {
+    border-top: 1px solid var(--rule);
+    padding-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8.6pt;
+    color: var(--ink-4);
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Table of contents ──────────────────────────────────────── */
+
+  .toc { break-after: page; }
+  .toc h2 {
+    font-family: var(--font-display);
+    font-size: 20pt;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    padding-bottom: 9px;
+    border-bottom: 2px solid var(--accent-line);
+    margin-bottom: 4px;
+  }
+  .toc .toc-note {
+    font-size: 9.2pt;
+    color: var(--ink-3);
+    margin: 10px 0 18px;
+  }
+  .toc-group {
+    font-family: var(--font-mono);
+    font-size: 8pt;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin: 18px 0 7px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .toc ol { list-style: none; padding: 0; margin: 0; }
+  .toc li {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    padding: 4px 0;
+    font-size: 10pt;
+  }
+  .toc li .n {
+    font-family: var(--font-mono);
+    font-size: 8.6pt;
+    color: var(--accent);
+    font-weight: 700;
+    min-width: 20px;
+  }
+  .toc li .t { font-weight: 600; color: var(--ink); }
+  .toc li .d { color: var(--ink-3); font-size: 9pt; }
+
+  /* ── Sections ───────────────────────────────────────────────── */
+
+  section.sec { break-before: page; padding-top: 2mm; }
+  section.sec:first-of-type { break-before: auto; }
+
+  /* ── Running footer on every printed page ───────────────────── */
+
+  .running-foot {
+    position: fixed;
+    bottom: 4mm;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 7.4pt;
+    letter-spacing: 0.06em;
+    color: var(--ink-4);
+    border-top: 1px solid var(--rule-soft);
+    padding-top: 3px;
+  }
+
+  @media screen {
+    body { background: var(--surface-2); }
+    .doc {
+      background: var(--paper);
+      margin: 18px auto;
+      box-shadow: 0 2px 24px rgba(26,21,18,0.10);
+      border-radius: 4px;
+      padding: 22mm 18mm;
+      max-width: 210mm;
+    }
+    .running-foot { display: none; }
+    .cover { height: auto; padding-bottom: 30px; }
+  }
+
+  @media print {
+    .doc { padding: 0; margin: 0; max-width: none; box-shadow: none; }
+    a { color: var(--ink); }
+  }
+</style>
+
+<div class="running-foot">
+  <span>FITVERSE — LOGIN NOTIFICATION IMPLEMENTATION GUIDE</span>
+  <span>SUPABASE + NEXT.JS + RESEND</span>
+</div>
+
+<div class="doc">
+
+<!-- ══════════════════════════ COVER ══════════════════════════ -->
+<div class="cover">
+
+  <div class="cover-mark">
+    <div class="glyph">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8h2.5M10.5 8H13M8 3v2.5M8 10.5V13M5.5 5.5l1.5 1.5M9 9l1.5 1.5M9 5.5L7.5 7M5.5 10.5L7 9"
+              stroke="#FDFCF9" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="name">FitVerse</span>
+    <span class="kind">Engineering Guide</span>
+  </div>
+
+  <div class="cover-mid">
+    <div class="cover-rule"></div>
+    <h1>Successful Login<br>Email Notification</h1>
+    <p class="sub">Complete implementation guide — step by step, for Supabase&nbsp;+&nbsp;Next.js&nbsp;+&nbsp;Resend.</p>
+
+    <div class="stack">
+      <span class="chip">Next.js 14.2.35</span>
+      <span class="chip">Supabase Auth</span>
+      <span class="chip">PostgreSQL</span>
+      <span class="chip">Resend</span>
+      <span class="chip">TypeScript</span>
+      <span class="chip">Zod</span>
+    </div>
+
+    <p class="abstract">
+      This guide shows you how to email a FitVerse user every time somebody signs
+      in to their account, and how to keep your own team informed — without ever
+      putting the login itself at risk. It is written for the FitVerse codebase
+      specifically: it reuses the patterns already working in your waitlist route,
+      your Supabase helpers and your Resend setup. Every technical term is
+      explained the first time it appears.
+    </p>
+  </div>
+
+  <div class="cover-foot">
+    <span>VERSION 1.0</span>
+    <span>REFERENCE DOCUMENT — READ BEFORE BUILDING</span>
+  </div>
+</div>
+
+<!-- ══════════════════════ TABLE OF CONTENTS ══════════════════ -->
+<div class="toc">
+  <h2>Contents</h2>
+  <p class="toc-note">
+    Sections 1–3 explain the idea and what you already have. Sections 4–14 are the
+    build, in the order you should do it. Sections 15–16 are for when something
+    breaks and for tracking your progress.
+  </p>
+
+  <div class="toc-group">Understanding the feature</div>
+  <ol>
+    <li><span class="n">01</span><span class="t">What Are We Building?</span> <span class="d">— the feature in plain language</span></li>
+    <li><span class="n">02</span><span class="t">The Recommended Approach</span> <span class="d">— the architecture, and why</span></li>
+    <li><span class="n">03</span><span class="t">Before You Start</span> <span class="d">— what FitVerse already has</span></li>
+  </ol>
+
+  <div class="toc-group">Building it</div>
+  <ol>
+    <li><span class="n">04</span><span class="t">Step 1 — Supabase Login Detection</span></li>
+    <li><span class="n">05</span><span class="t">Step 2 — Create the Database Table</span></li>
+    <li><span class="n">06</span><span class="t">Step 3 — Create the Backend API Route</span></li>
+    <li><span class="n">07</span><span class="t">Step 4 — Resend Configuration</span></li>
+    <li><span class="n">08</span><span class="t">Step 5 — The User Login Email</span></li>
+    <li><span class="n">09</span><span class="t">Step 6 — FitVerse Admin Notification</span></li>
+    <li><span class="n">10</span><span class="t">Step 7 — Duplicate Protection</span></li>
+    <li><span class="n">11</span><span class="t">Step 8 — Failure Handling</span></li>
+    <li><span class="n">12</span><span class="t">Step 9 — Security &amp; Privacy</span></li>
+    <li><span class="n">13</span><span class="t">Step 10 — Testing</span></li>
+    <li><span class="n">14</span><span class="t">Step 11 — Deployment</span></li>
+  </ol>
+
+  <div class="toc-group">Reference</div>
+  <ol>
+    <li><span class="n">15</span><span class="t">Troubleshooting</span> <span class="d">— when things go wrong</span></li>
+    <li><span class="n">16</span><span class="t">Final Implementation Checklist</span></li>
+  </ol>
+
+  <div class="box important" style="margin-top:22px">
+    <span class="box-label">Important — read this first</span>
+    <p>
+      <strong>The FitVerse landing page has no login yet.</strong> The only
+      authentication-adjacent thing in this repository is the waitlist form. The
+      endpoint you are about to build lives here, but the actual sign-in happens
+      inside the FitVerse mobile/web app.
+    </p>
+    <p style="margin-top:7px">
+      This guide assumes <strong>your app already uses Supabase Auth for email +
+      password login</strong>. If it does not yet, build that first — none of the
+      steps below will do anything without it.
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════ 1. WHAT ARE WE BUILDING ═════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 01</div>
+  <h2 class="sec-title">What Are We Building?</h2>
+
+  <p class="lead">
+    A security feature. Whenever someone signs in to a FitVerse account, that
+    account's owner gets an email telling them it happened. If it was them, they
+    ignore it. If it wasn't, they now know within seconds that somebody else has
+    their password.
+  </p>
+
+  <h3>1.1 &nbsp;What happens when a user logs in</h3>
+
+  <p>Right now, when a FitVerse user types their email and password:</p>
+  <ol>
+    <li>Supabase checks whether the password is correct.</li>
+    <li>If it is, Supabase creates a <strong>session</strong> — a record saying "this person is now signed in".</li>
+    <li>The app lets them in.</li>
+    <li><strong>Nothing else happens.</strong> Nobody is told.</li>
+  </ol>
+
+  <p>After you build this feature, one more thing happens, quietly, in the background:</p>
+  <ol start="5">
+    <li>Your system notices the new session, records it, and emails the user.</li>
+  </ol>
+
+  <h3>1.2 &nbsp;Why we need login notifications</h3>
+
+  <p>
+    Passwords leak. People reuse them across sites, sites get breached, and lists
+    of email/password pairs get traded. When somebody uses a stolen FitVerse
+    password, the login <em>looks completely normal</em> to your system — the
+    password is correct, after all.
+  </p>
+  <p>
+    A login notification is the one thing that closes this gap. It goes to an
+    address the attacker (usually) doesn't control, and it turns a silent break-in
+    into something the real owner finds out about immediately.
+  </p>
+
+  <div class="box why">
+    <span class="box-label">Why this matters more for FitVerse than for most apps</span>
+    <p>
+      FitVerse stores <strong>health data</strong> — what people eat, how they
+      sleep, their body metrics, and (with the For&nbsp;Women module) menstrual
+      cycle information. This is among the most sensitive categories of personal
+      data there is. A break-in here is not "someone saw my workout log" — it is a
+      genuine privacy harm. Login alerts are a standard, expected protection for
+      products holding this kind of data.
+    </p>
+  </div>
+
+  <h3>1.3 &nbsp;What the user receives</h3>
+  <p>
+    One short email: <em>"Your FitVerse account was signed in to just now"</em>,
+    with the time, the device, and a big obvious button — <strong>"This wasn't me
+    — reset my password"</strong>. Nothing technical, nothing alarming if it was
+    them. Full design in Section&nbsp;08.
+  </p>
+
+  <h3>1.4 &nbsp;What FitVerse receives</h3>
+  <p>
+    You originally wanted an email to your team for every single login. I am going
+    to recommend something different — <strong>one summary email per day</strong>
+    instead of one per login. The full reasoning is in Section&nbsp;09, but the
+    short version is: an inbox that gets a thousand emails a day is an inbox
+    nobody reads.
+  </p>
+
+  <h3>1.5 &nbsp;Why the backend must handle this</h3>
+
+  <p>
+    The obvious approach is to put the code in the app: "after login succeeds, send
+    the email." <strong>This is the wrong approach, and it is worth understanding
+    why before you build anything.</strong>
+  </p>
+
+  <div class="concept">
+    <div class="concept-head">Concept: client-side vs. server-side detection</div>
+    <div class="concept-body">
+      <dl>
+        <dt>What "client-side" means</dt>
+        <dd>Code that runs on the user's own phone or browser — inside the FitVerse app itself.</dd>
+        <dt>What "server-side" means</dt>
+        <dd>Code that runs on machines you control — Supabase's servers and your Next.js backend. The user cannot see or change it.</dd>
+        <dt>Why client-side fails here</dt>
+        <dd>
+          Two reasons. <strong>First, it fires at the wrong times.</strong> Supabase's
+          client library has a listener called <code>onAuthStateChange</code> that
+          emits a <code>SIGNED_IN</code> event. It sounds perfect, but it also fires
+          when the app simply opens with a saved session, and sometimes when a
+          browser tab regains focus. You would email people every time they opened
+          the app. <strong>Second, it can be skipped.</strong> A modified app just
+          doesn't make the call, and the alert silently never sends.
+        </dd>
+        <dt>The principle</dt>
+        <dd><strong>A security alert that can be skipped is not a security feature.</strong> It must be triggered by something the attacker cannot switch off.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <h3>1.6 &nbsp;The whole system, in one picture</h3>
+
+<pre class="flow">User types email + password in the FitVerse app
+        |
+[1] Supabase Auth checks the password -> creates a NEW SESSION
+        |
+[2] A database trigger notices "a new session row appeared"
+        |     (sends an HTTP POST, with a secret header)
+        v
+[3] Your Next.js API route receives it
+        |
+[4] Saves a row in login_events   &lt;-- unique session_id blocks duplicates
+        |
+[5] Resend emails the user "new sign-in detected"
+        |
+[6] Row is updated: email sent / failed
+        |
+[7] Separately, once a day, a digest email goes to your team</pre>
+
+  <p>
+    Notice that steps 2–7 happen <em>after</em> the user is already logged in. That
+    ordering is deliberate, and it is what guarantees the rule we will come back to
+    repeatedly: <strong>a broken email system can never stop somebody signing in.</strong>
+  </p>
+</section>
+
+<!-- ══════════════════════ 2. RECOMMENDED APPROACH ═════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 02</div>
+  <h2 class="sec-title">The Recommended Approach</h2>
+
+  <p class="lead">
+    You need Supabase, a trigger, a backend route, a database table, and Resend.
+    These are not competing options — each does a different job. The only real
+    decision is <em>how Supabase tells your backend that a login happened</em>, and
+    Section&nbsp;04 settles that.
+  </p>
+
+  <h3>2.1 &nbsp;The role of each component</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:27%">Component</th><th style="width:31%">Its one job</th><th>What you do with it</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Supabase Auth</strong></td>
+        <td>Checks the password and creates the session.</td>
+        <td><strong>Nothing.</strong> You do not modify how login works at all. This is important — you are adding a listener, not changing authentication.</td>
+      </tr>
+      <tr>
+        <td><strong>Database trigger + <code>pg_net</code></strong></td>
+        <td>The doorbell. Notices a new session and calls your API.</td>
+        <td>Write a small database function and attach it to the sessions table. Runs on Supabase's servers, so the app cannot skip it.</td>
+      </tr>
+      <tr>
+        <td><strong>Next.js API route</strong></td>
+        <td>The brain. Verifies the call is genuine, records it, sends the email.</td>
+        <td>Create one new file, modelled on your existing waitlist route.</td>
+      </tr>
+      <tr>
+        <td><strong>Supabase database</strong></td>
+        <td>Stores everything, and enforces the no-duplicates rule.</td>
+        <td>Run one SQL migration.</td>
+      </tr>
+      <tr>
+        <td><strong><code>login_events</code> table</strong></td>
+        <td>The logbook. Also your duplicate-blocker and your retry list.</td>
+        <td>Created by that migration. Protected by Row Level Security.</td>
+      </tr>
+      <tr>
+        <td><strong>Resend</strong></td>
+        <td>The postman. Actually delivers the email.</td>
+        <td>Already wired up in your project. You verify the domain and add a sender address.</td>
+      </tr>
+      <tr>
+        <td><strong>Admin digest</strong></td>
+        <td>One summary email per day to your team.</td>
+        <td>Build this <em>last</em>, after user emails work.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>2.2 &nbsp;Why this architecture suits FitVerse specifically</h3>
+
+  <p>This is not a generic recommendation. It is shaped by what your project already contains:</p>
+
+  <ul>
+    <li><strong>You already have Resend working.</strong> Your waitlist form sends a welcome email through it today. No new email provider, no new account, no new cost.</li>
+    <li><strong>You already have a server-side Supabase admin client.</strong> <span class="filepath">lib/supabase.ts</span> exposes <code>getSupabaseAdmin()</code>, which can write to any table. Exactly what the new route needs.</li>
+    <li><strong>You already have this exact route pattern.</strong> <span class="filepath">app/api/waitlist/route.ts</span> validates input, writes to Supabase, catches duplicate-key errors, hashes IP addresses and sends an email without letting failure break the main action. Your new route is that file with a different trigger.</li>
+    <li><strong>You are a small team.</strong> Keeping everything in Next.js means one language, one deployment, one place to look when something breaks.</li>
+  </ul>
+
+  <div class="box tip">
+    <span class="box-label">Tip — the honest summary</span>
+    <p>
+      <strong>You have already built this once.</strong> The login notifier is your
+      waitlist route with a different trigger and a different email template. When
+      you get stuck, open the waitlist route and look at how it solved the same
+      problem.
+    </p>
+  </div>
+
+  <h3>2.3 &nbsp;Why not a Supabase Edge Function?</h3>
+
+  <p>
+    Supabase offers <strong>Edge Functions</strong> — small programs that run on
+    Supabase's own infrastructure. This would also work, and it is a perfectly
+    respectable choice. I am not recommending it here because Edge Functions are
+    written in Deno, deployed separately from your Next.js app, with their own
+    secrets to manage and their own logs to check.
+  </p>
+  <p>
+    That means two stacks to maintain instead of one, for no functional gain. For a
+    small pre-launch team, <strong>one stack beats two.</strong> If your team later
+    grows and wants the notification logic to live closer to the database, moving it
+    to an Edge Function is a straightforward migration.
+  </p>
+
+  <div class="box warning">
+    <span class="box-label">Warning — do not use onAuthStateChange</span>
+    <p>
+      If you search online for "Supabase send email on login", most answers will
+      tell you to listen to <code>onAuthStateChange</code> in your app. <strong>Do
+      not do this.</strong> As explained in Section&nbsp;1.5, it fires on app open
+      and session restore, and it can be bypassed. Every problem it creates is one
+      the server-side approach simply does not have.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════ 3. BEFORE YOU START ═════════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 03</div>
+  <h2 class="sec-title">Before You Start</h2>
+
+  <p class="lead">
+    You are not starting from zero. Roughly 70% of the machinery already exists in
+    the FitVerse codebase. This section shows you exactly what to reuse, so you
+    don't rebuild things you already own.
+  </p>
+
+  <h3>3.1 &nbsp;Your reference implementation</h3>
+
+  <div class="box important">
+    <span class="box-label">Read this file first</span>
+    <p>
+      <span class="filepath">app/api/waitlist/route.ts</span>
+    </p>
+    <p style="margin-top:6px">
+      Read it start to finish before you write anything. Your new route is the same
+      shape with a different trigger. Every pattern you need is already there,
+      already working, already reviewed.
+    </p>
+  </div>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:38%">Pattern in that file</th><th style="width:14%">Lines</th><th>Reuse it?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>hashIP()</code> — SHA-256 + <code>IP_HASH_SALT</code></td><td>25–32</td><td class="yes">Yes, identically</td></tr>
+      <tr><td>Zod schema + <code>safeParse</code> → 422</td><td>35–47</td><td class="yes">Yes, different fields</td></tr>
+      <tr><td><code>getSupabaseAdmin()</code> for writes</td><td>121</td><td class="yes">Yes</td></tr>
+      <tr><td>Duplicate detection via error <code>23505</code></td><td>126–135</td><td class="yes">Yes — this is the core of the feature</td></tr>
+      <tr><td>Try/catch → generic 500, details only to logs</td><td>157–163</td><td class="yes">Yes</td></tr>
+      <tr><td><code>GET</code> returns 405</td><td>166–168</td><td class="yes">Yes</td></tr>
+      <tr><td>CORS <code>secureHeaders()</code></td><td>50–66</td><td class="no">No — deliberately skip (§6.2)</td></tr>
+      <tr><td>In-memory rate-limit <code>Map</code></td><td>8–22</td><td class="no">No — don't copy (§6.2)</td></tr>
+      <tr><td>Fire-and-forget email <code>.catch()</code></td><td>145–153</td><td><strong>Modify</strong> — you'll await instead (§6.2)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>3.2 &nbsp;Your existing configuration</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:32%">What</th><th>Where it lives</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Resend client</strong></td><td><span class="filepath">lib/resend.ts</span> — exports a ready-to-use <code>resend</code> object</td></tr>
+      <tr><td><strong>Supabase server client</strong></td><td><span class="filepath">lib/supabase.ts</span> — <code>getSupabaseAdmin()</code> is the one you want</td></tr>
+      <tr><td><strong>Email templates</strong></td><td><span class="filepath">fitverse/app/privacy/email-templates.ts</span></td></tr>
+      <tr><td><strong>Environment variables</strong></td><td><span class="filepath">.env.local</span> — not in the repo, it is gitignored</td></tr>
+      <tr><td><strong>Deployed site URL</strong></td><td><code>NEXT_PUBLIC_SITE_URL</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>3.3 &nbsp;Environment variables already in use</h3>
+
+<pre>NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+RESEND_API_KEY
+IP_HASH_SALT
+NEXT_PUBLIC_SITE_URL</pre>
+
+  <p>You will add exactly <strong>two</strong> new ones:</p>
+
+<pre>LOGIN_HOOK_SECRET      # a long random password shared with Supabase
+ADMIN_ALERT_EMAIL      # where the daily team digest is sent</pre>
+
+  <div class="concept">
+    <div class="concept-head">Concept: what <code>NEXT_PUBLIC_</code> means, and why it matters</div>
+    <div class="concept-body">
+      <dl>
+        <dt>What it is</dt>
+        <dd>A prefix Next.js looks for on environment variable names.</dd>
+        <dt>What it does</dt>
+        <dd>
+          Any variable starting with <code>NEXT_PUBLIC_</code> gets <strong>baked
+          into the JavaScript sent to the browser</strong>. Anyone can open developer
+          tools and read it. Variables <em>without</em> the prefix stay on the server
+          and are never sent anywhere.
+        </dd>
+        <dt>Why you must care</dt>
+        <dd>
+          <code>SUPABASE_SERVICE_ROLE_KEY</code> can read and write every row in
+          your database, ignoring all security rules. If it ever got the
+          <code>NEXT_PUBLIC_</code> prefix, you would be publishing full database
+          access to every visitor.
+        </dd>
+        <dt>The good news</dt>
+        <dd>
+          Your project already gets this right. <span class="filepath">lib/supabase.ts</span>
+          reads <code>SUPABASE_SERVICE_ROLE_KEY</code> with no prefix, and
+          <span class="filepath">lib/resend.ts</span> reads
+          <code>RESEND_API_KEY</code> with no prefix. <strong>Keep it that way.</strong>
+        </dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="box warning">
+    <span class="box-label">Warning — fix this before adding any new secret</span>
+    <p>
+      Your <span class="filepath">.gitignore</span> ignores <code>.env*.local</code>
+      but <strong>not</strong> a plain <code>.env</code> file. If anyone on the team
+      ever creates <code>.env</code>, your service role key and Resend key get
+      committed to git — and once a secret is in git history, it is compromised
+      forever, even if you delete it later.
+    </p>
+    <p style="margin-top:7px"><strong>Add <code>.env</code> to <span class="filepath">.gitignore</span> as step one.</strong></p>
+  </div>
+
+  <h3>3.4 &nbsp;What you are reusing rather than rebuilding</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:34%">You could build...</th><th>...but you already have</th></tr></thead>
+    <tbody>
+      <tr><td>An email sending service</td><td>Resend, configured and working in <span class="filepath">lib/resend.ts</span></td></tr>
+      <tr><td>A database connection</td><td>Lazy-loaded Supabase clients in <span class="filepath">lib/supabase.ts</span></td></tr>
+      <tr><td>Input validation</td><td>Zod, already a dependency, already used with <code>safeParse</code></td></tr>
+      <tr><td>Duplicate handling</td><td>The <code>23505</code> error-code check in the waitlist route</td></tr>
+      <tr><td>IP anonymisation</td><td><code>hashIP()</code> — SHA-256 with a salt</td></tr>
+      <tr><td>An email template structure</td><td>The HTML + plain-text pattern in <span class="filepath">fitverse/app/privacy/email-templates.ts</span></td></tr>
+      <tr><td>Safe error handling</td><td>Generic responses to callers, real details only to <code>console.error</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ══════════════════════ 4. SUPABASE DETECTION ═══════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 04 &middot; Step 1</div>
+  <h2 class="sec-title">Supabase Login Detection</h2>
+
+  <p class="lead">
+    This is the one genuine decision in the whole project: how does Supabase tell
+    your backend that a real login just happened? There are two candidates. I
+    recommend one of them clearly, and explain the trade-off honestly.
+  </p>
+
+  <h3>4.1 &nbsp;Check whether the Password Verification Auth Hook exists</h3>
+
+  <div class="concept">
+    <div class="concept-head">Concept: an Auth Hook</div>
+    <div class="concept-body">
+      <dl>
+        <dt>What it is</dt>
+        <dd>A place where Supabase lets you plug your own code into the login process itself.</dd>
+        <dt>Why it might help</dt>
+        <dd>The "Password Verification Attempt" hook fires every time Supabase checks a password, telling you <em>which user</em> and <em>whether the password was correct</em>. That is very close to what we want.</dd>
+        <dt>The catch</dt>
+        <dd>Availability varies by Supabase plan and version, so you must check rather than assume.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <h4 class="step">WHAT YOU NEED TO DO</h4>
+  <ol>
+    <li>Open your <strong>Supabase Dashboard</strong> and select your project.</li>
+    <li>In the left sidebar, click <strong>Authentication</strong>.</li>
+    <li>Look for a sub-item called <strong>Hooks</strong> (it may be labelled "Auth Hooks", and depending on your dashboard version it may live inside Authentication settings rather than as its own menu item).</li>
+    <li>If hooks are available, you will see a list of hook types — typically <em>Send Email</em>, <em>Send SMS</em>, <em>Custom Access Token</em>, <em>MFA Verification Attempt</em>, and <em>Password Verification Attempt</em>.</li>
+    <li><strong>Write down what you find.</strong> You need this answer recorded even though, as explained next, you are probably not going to use it.</li>
+  </ol>
+
+  <p><strong>How to tell it is unavailable:</strong> the Hooks section is missing entirely, or the hooks are shown greyed out with an "upgrade your plan" prompt.</p>
+
+  <div class="box important">
+    <span class="box-label">Important — the dashboard changes</span>
+    <p>
+      Supabase redesigns its dashboard regularly, so exact menu labels may differ
+      from what is written above. <strong>Look for the concept, not the exact
+      wording:</strong> a section under Authentication that lists pluggable hooks.
+      I am deliberately not inventing precise button names I cannot verify.
+    </p>
+  </div>
+
+  <h3>4.2 &nbsp;The decision — and my recommendation</h3>
+
+  <div class="box rec">
+    <span class="box-label">✓ Recommended option</span>
+    <p style="font-size:10.5pt">
+      <strong>Use a database trigger on new sessions</strong> — even if the Password
+      Verification Hook turns out to be available in your project.
+    </p>
+  </div>
+
+  <p>Here is the honest comparison:</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:46%">Capability</th><th class="ctr" style="width:27%">Password Hook</th><th class="ctr">New-session Trigger</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Tells you a password specifically was checked</td><td class="ctr yes">Yes</td><td class="ctr no">No (covers all login types)</td></tr>
+      <tr><td>Gives you a <strong>session ID</strong></td><td class="ctr no">No</td><td class="ctr yes">Yes</td></tr>
+      <tr><td>Gives you <strong>device / browser</strong> info</td><td class="ctr no">No</td><td class="ctr yes">Yes</td></tr>
+      <tr><td>Gives you the <strong>IP address</strong></td><td class="ctr no">No</td><td class="ctr yes">Yes</td></tr>
+      <tr><td>Available on every Supabase plan</td><td class="ctr">Must verify</td><td class="ctr yes">Yes</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="box why">
+    <span class="box-label">Why the trigger wins</span>
+    <p>
+      The password hook fires <em>before</em> a session exists. That means <strong>no
+      session ID</strong> — and your entire duplicate-prevention design depends on
+      that session ID being available. It also means no device information to put in
+      the email. The trigger simply gives you more of what you need.
+    </p>
+    <p style="margin-top:7px">
+      <strong>And alerting on every login is better security, not worse.</strong> If
+      you add Google sign-in later, someone breaking into a Google account is exactly
+      who you want to catch. Restricting alerts to password logins would be a
+      downgrade.
+    </p>
+  </div>
+
+  <div class="box fallback">
+    <span class="box-label">Fallback option — for later, not now</span>
+    <p>
+      If you later want to distinguish "signed in with a password" from "signed in
+      with Google", the Password Verification Hook is where you would get that
+      signal. Note whether it exists in your project, then set it aside.
+      <strong>Do not build on it today.</strong>
+    </p>
+  </div>
+
+  <h3>4.3 &nbsp;Verify what your <code>auth.sessions</code> table contains</h3>
+
+  <p>
+    <strong>Do this before writing anything else.</strong> Supabase's internal
+    tables vary between versions, so confirm rather than assume.
+  </p>
+
+  <h4 class="step">WHAT YOU NEED TO DO</h4>
+  <p>Dashboard → <strong>SQL Editor</strong> → <strong>New query</strong> → run this read-only query:</p>
+
+<pre><code>select column_name, data_type
+from information_schema.columns
+where table_schema = 'auth' and table_name = 'sessions'
+order by ordinal_position;</code></pre>
+
+  <p>You are looking for these columns:</p>
+  <ul>
+    <li><code>id</code> — the session ID. <strong>Essential.</strong></li>
+    <li><code>user_id</code> — who logged in. <strong>Essential.</strong></li>
+    <li><code>created_at</code> — when. <strong>Essential.</strong></li>
+    <li><code>user_agent</code> — the device/browser. <em>Nice to have.</em></li>
+    <li><code>ip</code> — the IP address. <em>Nice to have.</em></li>
+  </ul>
+
+  <div class="box tip">
+    <span class="box-label">Tip</span>
+    <p>
+      If <code>user_agent</code> and <code>ip</code> are missing, <strong>everything
+      still works</strong> — you simply won't have device information in the email.
+      Record what you find; the next step depends on it.
+    </p>
+  </div>
+
+  <h3>4.4 &nbsp;Enable the <code>pg_net</code> extension</h3>
+
+  <div class="concept">
+    <div class="concept-head">Concept: <code>pg_net</code></div>
+    <div class="concept-body">
+      <dl>
+        <dt>What it is</dt>
+        <dd>An add-on for PostgreSQL that lets the database itself make HTTP requests to the internet.</dd>
+        <dt>Why we need it</dt>
+        <dd>Your database needs to phone your API route when a login happens. Databases normally cannot do this.</dd>
+        <dt>How it helps safety</dt>
+        <dd><strong><code>net.http_post</code> queues the request and returns immediately.</strong> It does not sit and wait for a reply, so it can never slow down or block a login.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <h4 class="step">WHAT YOU NEED TO DO</h4>
+  <p>Dashboard → <strong>Database</strong> → <strong>Extensions</strong> → search for <code>pg_net</code> → enable it.</p>
+
+  <h3>4.5 &nbsp;Store your secret inside Supabase Vault</h3>
+
+  <div class="concept">
+    <div class="concept-head">Concept: the shared secret</div>
+    <div class="concept-body">
+      <dl>
+        <dt>What it is</dt>
+        <dd>A long random password that only Supabase and your API route know.</dd>
+        <dt>Why we need it</dt>
+        <dd>Your API endpoint sits on the public internet. Without a secret, <em>anyone</em> could call it and trigger fake "someone logged into your account!" emails to your users — a perfect phishing tool.</dd>
+        <dt>How it works</dt>
+        <dd>Supabase sends the secret in an HTTP header. Your route compares it to its own copy. No match, no action.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <h4 class="step">WHAT YOU NEED TO DO</h4>
+  <ol>
+    <li>Generate a random string of <strong>at least 32 characters</strong> using a password manager. Do not type one yourself — human-chosen strings are guessable.</li>
+    <li>Go to Dashboard → <strong>Project Settings</strong> → <strong>Vault</strong> (it may also appear under Integrations).</li>
+    <li>Create a secret named <code>login_hook_secret</code> and paste the value in.</li>
+    <li>Keep the same value handy — it goes into your hosting environment as <code>LOGIN_HOOK_SECRET</code> in Section&nbsp;07.</li>
+  </ol>
+
+  <div class="box why">
+    <span class="box-label">Why use Vault instead of typing it in the function?</span>
+    <p>
+      If you paste the secret directly into the database function, anyone who can
+      read your function definitions can read your secret. Vault keeps it encrypted
+      and out of the function body.
+    </p>
+  </div>
+
+  <h3>4.6 &nbsp;Why the Webhooks dashboard UI probably won't work</h3>
+
+  <p>
+    You may be tempted by Dashboard → <strong>Database</strong> →
+    <strong>Webhooks</strong>, which offers a friendly point-and-click way to watch
+    a table. Try it, but be aware of a real limitation:
+  </p>
+
+  <div class="box warning">
+    <span class="box-label">Warning</span>
+    <p>
+      The Webhooks UI usually only lists tables in the <code>public</code> schema.
+      The table you need — <code>auth.sessions</code> — lives in the
+      <code>auth</code> schema. <strong>So you will most likely need to create the
+      trigger by hand in the SQL Editor</strong> rather than through the UI.
+    </p>
+  </div>
+
+  <h3>4.7 &nbsp;Creating the trigger — and the one rule that matters most</h3>
+
+  <div class="concept">
+    <div class="concept-head">Concept: a database trigger</div>
+    <div class="concept-body">
+      <dl>
+        <dt>What it is</dt>
+        <dd>A rule that says "whenever X happens to this table, automatically run this code."</dd>
+        <dt>What ours does</dt>
+        <dd>"Whenever a new row is inserted into <code>auth.sessions</code>, send an HTTP POST to my API."</dd>
+        <dt>Why it is reliable</dt>
+        <dd>It lives inside the database. The app cannot skip it, disable it, or forget to call it.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="box warning">
+    <span class="box-label">Warning — the single most important detail in this guide</span>
+    <p>
+      <strong>Wrap the entire trigger function body in an exception handler that
+      swallows all errors.</strong>
+    </p>
+    <p style="margin-top:7px">
+      Triggers run <em>inside</em> the login transaction. If your function throws an
+      error, the session insert is rolled back — and <strong>the user cannot log
+      in.</strong> A single typo in your notification code would lock every FitVerse
+      user out of their account.
+    </p>
+    <p style="margin-top:7px">
+      An exception handler ending in <code>exception when others then return new;</code>
+      guarantees that a broken notifier can never prevent a login. <strong>Do not
+      skip this.</strong>
+    </p>
+  </div>
+
+  <h4>What the function should do, in order</h4>
+  <ol>
+    <li>Try to read the secret from Vault.</li>
+    <li>Call <code>net.http_post</code> with your endpoint URL, a JSON body, and the headers below.</li>
+    <li>Catch and swallow every possible error, always letting the login proceed.</li>
+  </ol>
+
+  <h4>Trigger settings</h4>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:26%">Setting</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Timing</strong></td><td><code>AFTER INSERT</code> — never <code>BEFORE</code>. "After" means the login has already succeeded before your code runs.</td></tr>
+      <tr><td><strong>Table</strong></td><td><code>auth.sessions</code></td></tr>
+      <tr><td><strong>For each</strong></td><td><code>ROW</code> — run once per new session, not once per statement.</td></tr>
+      <tr><td><strong>HTTP method</strong></td><td><code>POST</code></td></tr>
+      <tr><td><strong>URL</strong></td><td><code>https://fitverse.app/api/auth/login-notify</code> — your <strong>deployed</strong> URL, not localhost.</td></tr>
+      <tr><td><strong>Headers</strong></td><td><code>Content-Type: application/json</code><br><code>x-fitverse-hook-secret: &lt;your secret&gt;</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h4>The JSON body it should send</h4>
+
+<pre><code>{
+  "session_id":  "&lt;the new session's id&gt;",
+  "user_id":     "&lt;the new session's user_id&gt;",
+  "occurred_at": "&lt;created_at&gt;",
+  "user_agent":  "&lt;user_agent, or null&gt;",
+  "ip":          "&lt;ip, or null&gt;"
+}</code></pre>
+
+  <div class="box tip">
+    <span class="box-label">Tip — send the raw IP, store the hashed one</span>
+    <p>
+      Send the <strong>raw</strong> IP address here. Your API route hashes it on
+      arrival using the existing <code>hashIP()</code> function. That way the real IP
+      travels over encrypted HTTPS but is <strong>never written to disk</strong>.
+      Same approach your waitlist route already uses.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════ 5. DATABASE TABLE ═══════════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 05 &middot; Step 2</div>
+  <h2 class="sec-title">Create the Database Table</h2>
+
+  <p class="lead">
+    One table, <code>login_events</code>, does three jobs at once: it is your
+    logbook, your duplicate-blocker, and your retry list. Run this SQL yourself in
+    the Supabase SQL Editor.
+  </p>
+
+  <h3>5.1 &nbsp;The SQL migration</h3>
+
+<pre><code>create table public.login_events (
+  id               uuid primary key default gen_random_uuid(),
+  session_id       uuid not null unique,
+  user_id          uuid not null references auth.users(id) on delete cascade,
+  occurred_at      timestamptz not null,
+
+  user_agent       text,
+  ip_hash          text,
+
+  email_status     text not null default 'pending'
+                   check (email_status in ('pending','sent','failed','skipped')),
+  email_sent_at    timestamptz,
+  email_error      text,
+  email_attempts   int not null default 0,
+
+  created_at       timestamptz not null default now()
+);
+
+create index login_events_user_time_idx
+  on public.login_events (user_id, occurred_at desc);
+
+create index login_events_retry_idx
+  on public.login_events (email_status)
+  where email_status in ('pending','failed');
+
+create index login_events_digest_idx
+  on public.login_events (occurred_at desc);
+
+alter table public.login_events enable row level security;
+
+create policy "users read own login history"
+  on public.login_events
+  for select
+  using (auth.uid() = user_id);</code></pre>
+
+  <h3>5.2 &nbsp;Every column explained</h3>
+
+  <h4>Necessary columns</h4>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:26%">Column</th><th>What it is for</th></tr></thead>
+    <tbody>
+      <tr><td><code>id</code></td><td>The row's own identifier. Standard practice — every table gets one. <code>gen_random_uuid()</code> generates a random unique value automatically.</td></tr>
+      <tr><td><code>session_id</code></td><td><strong>The heart of the whole feature.</strong> Supabase's ID for this specific login. Marked <code>unique</code>, which means the database <em>physically refuses</em> to store a second row with the same value. That refusal is your duplicate-blocker.</td></tr>
+      <tr><td><code>user_id</code></td><td>Who logged in. <code>references auth.users(id) on delete cascade</code> means if a user deletes their account, all their login history is deleted automatically — good for privacy compliance, and you get it for free.</td></tr>
+      <tr><td><code>occurred_at</code></td><td>When the login actually happened, taken from Supabase.</td></tr>
+      <tr><td><code>email_status</code></td><td>Where the email got to: <code>pending</code>, <code>sent</code>, <code>failed</code> or <code>skipped</code>. The <code>check</code> constraint means a typo like <code>'sentt'</code> is rejected by the database rather than silently stored.</td></tr>
+      <tr><td><code>created_at</code></td><td>When <em>you</em> recorded the row. Differs from <code>occurred_at</code> if a retry ran later — useful when debugging.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h4>Useful columns</h4>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:26%">Column</th><th>What it is for</th></tr></thead>
+    <tbody>
+      <tr><td><code>user_agent</code></td><td>The raw browser/device text string. You convert it into friendly wording like "Chrome on Windows" when writing the email.</td></tr>
+      <tr><td><code>ip_hash</code></td><td>The scrambled IP address. Lets you notice "20 logins from one place" without ever storing anyone's actual address.</td></tr>
+      <tr><td><code>email_sent_at</code></td><td>The moment the email went out. Useful for spotting delays.</td></tr>
+      <tr><td><code>email_error</code></td><td>The error message if sending failed. <strong>Without this you will never know why an email didn't arrive.</strong></td></tr>
+      <tr><td><code>email_attempts</code></td><td>How many times you have tried. Lets your retry job give up after three attempts instead of looping forever.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h4>Columns I have deliberately left out</h4>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:26%">Column</th><th>Why it is not there</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>email</code></td>
+        <td>You asked for it, and I would skip it. Storing the address <strong>duplicates personal data</strong> that can go out of date, and you can always fetch the current one from <code>auth.users</code> when you need it. One less copy of personal data is one less thing to protect.</td>
+      </tr>
+      <tr>
+        <td><code>admin_notified</code></td>
+        <td>Unnecessary once you use a digest. The digest simply asks "show me everything from the last 24 hours" using <code>occurred_at</code>. A per-row flag would be bookkeeping you never read.</td>
+      </tr>
+      <tr>
+        <td>Approximate location</td>
+        <td>Needs a paid third-party IP-lookup service — an extra dependency and an extra cost. <strong>Skip it in version 1.</strong> Time plus device is enough for someone to recognise their own login. Add it later if you want.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>5.3 &nbsp;Keys, constraints and indexes explained</h3>
+
+  <div class="concept">
+    <div class="concept-head">Concept: primary key</div>
+    <div class="concept-body">
+      <dl>
+        <dt>What it is</dt>
+        <dd>The column that uniquely identifies each row — here, <code>id</code>.</dd>
+        <dt>Why we need it</dt>
+        <dd>So you can point at one specific row to update it (for example, to change <code>email_status</code> from <code>pending</code> to <code>sent</code>).</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="concept-head">Concept: unique constraint on <code>session_id</code></div>
+    <div class="concept-body">
+      <dl>
+        <dt>What it is</dt>
+        <dd>A rule telling the database "this value may appear at most once in this whole table."</dd>
+        <dt>Why it is the most important line in the migration</dt>
+        <dd>
+          To prevent the same login email being sent twice, every login session gets
+          a unique ID. The database allows that ID to appear only once. If Supabase
+          accidentally sends the same event again, the database recognises the
+          session already exists, rejects the insert, and your code simply skips
+          sending another email.
+        </dd>
+        <dt>Why it must live in the database, not in your code</dt>
+        <dd>
+          Serverless functions can run several copies of themselves at the same
+          instant. Two copies could both ask "does this exist?", both get told "no",
+          and both send an email. <strong>The database cannot make that mistake</strong>
+          — a unique constraint is enforced at the storage layer, where only one write
+          can win.
+        </dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="concept-head">Concept: indexes</div>
+    <div class="concept-body">
+      <dl>
+        <dt>What they are</dt>
+        <dd>Like the index at the back of a book — a shortcut that lets the database find rows without reading every single one.</dd>
+        <dt>The three we create</dt>
+        <dd>
+          <strong><code>login_events_user_time_idx</code></strong> — makes "show me
+          this user's recent logins" fast. You will want a "recent activity" screen
+          eventually.<br>
+          <strong><code>login_events_retry_idx</code></strong> — makes "find all
+          emails that failed" fast. This is a <em>partial</em> index: it only covers
+          <code>pending</code> and <code>failed</code> rows, so it stays small.<br>
+          <strong><code>login_events_digest_idx</code></strong> — makes "show me
+          everything from the last 24 hours" fast, for the admin digest.
+        </dd>
+      </dl>
+    </div>
+  </div>
+
+  <h3>5.4 &nbsp;Row Level Security — why nobody sees another user's history</h3>
+
+  <div class="concept">
+    <div class="concept-head">Concept: Row Level Security (RLS)</div>
+    <div class="concept-body">
+      <dl>
+        <dt>What it is</dt>
+        <dd>A PostgreSQL feature where the database itself decides, row by row, who is allowed to see what.</dd>
+        <dt>Why it beats checking in your code</dt>
+        <dd>If the rule lives in your application code, every new query is a new chance to forget it. If it lives in the database, <strong>it cannot be forgotten</strong> — the protection applies to every query from everywhere, automatically.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <p>Three layers protect this table:</p>
+
+  <ol>
+    <li><strong><code>enable row level security</code></strong> — flips the default to <em>deny everything</em>. With RLS on and no matching policy, nobody reads anything at all.</li>
+    <li><strong>The select policy</strong> — <code>auth.uid() = user_id</code> tells the database to compare the currently-logged-in user's ID against the row's owner. A user asking for someone else's rows gets an <strong>empty result, not an error</strong> — so there is nothing to probe at or guess from.</li>
+    <li><strong>No insert, update or delete policies</strong> — deliberately absent. This means no ordinary user can ever write to this table, only read their own rows. Only your server writes.</li>
+  </ol>
+
+  <div class="box important">
+    <span class="box-label">Important — how your server writes to a protected table</span>
+    <p>
+      <code>getSupabaseAdmin()</code> in <span class="filepath">lib/supabase.ts</span>
+      uses the <strong>service role key</strong>, which bypasses RLS entirely. That
+      is correct and intended — your backend needs to write rows for any user.
+    </p>
+    <p style="margin-top:7px">
+      But it is <em>exactly why</em> that key must never reach a browser. RLS is your
+      wall; the service role key is the master key that opens every door in it.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════ 6. API ROUTE ════════════════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 06 &middot; Step 3</div>
+  <h2 class="sec-title">Create the Backend API Route</h2>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:26%">Detail</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td><strong>File location</strong></td><td><span class="filepath">app/api/auth/login-notify/route.ts</span></td></tr>
+      <tr><td><strong>Method</strong></td><td><code>POST</code> only. Add a <code>GET</code> that returns 405, copying waitlist route lines 166–168.</td></tr>
+      <tr><td><strong>Called by</strong></td><td>Your Supabase database trigger — never a browser.</td></tr>
+      <tr><td><strong>Reference file</strong></td><td><span class="filepath">app/api/waitlist/route.ts</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>6.1 &nbsp;The flow at a glance</h3>
+
+<pre class="flow">POST /api/auth/login-notify
+  |
+  |-- bad secret?        -&gt; 401, stop
+  |-- bad JSON?          -&gt; 400
+  |-- fails validation?  -&gt; 422
+  |
+  |-- insert row (status = pending)
+  |     |
+  |     +-- error 23505? -&gt; 200, no email   &lt;-- duplicate blocked
+  |
+  |-- fetch user email
+  |     |
+  |     +-- none?        -&gt; mark skipped, 200
+  |
+  |-- await resend.send()
+  |-- update row (sent / failed)
+  |
+  +-- 200</pre>
+
+  <h3>6.2 &nbsp;Three deliberate differences from the waitlist route</h3>
+
+  <p>
+    You are copying that file's patterns, but three things must change. Understanding
+    <em>why</em> each one changes will teach you more than the code itself.
+  </p>
+
+  <div class="box why">
+    <span class="box-label">1 — No CORS headers</span>
+    <p>
+      The waitlist route has <code>secureHeaders()</code> because a browser calls it,
+      and browsers require CORS permission. <strong>This endpoint is called by your
+      database, server to server.</strong> Browsers should never touch it, so adding
+      CORS would only widen your attack surface for no benefit. Leave it out.
+    </p>
+  </div>
+
+  <div class="box why">
+    <span class="box-label">2 — Do not copy the in-memory rate-limit Map</span>
+    <p>
+      The waitlist route keeps a counter in memory (line 8). On serverless hosting,
+      each running instance gets its <em>own</em> memory, so the limit is unreliable
+      — a fact worth knowing about that route too.
+    </p>
+    <p style="margin-top:7px">
+      Here you do not need it. The <strong>shared secret</strong> stops strangers and
+      the <strong>unique session ID</strong> stops repeats. Both are far stronger
+      guarantees than a counter.
+    </p>
+  </div>
+
+  <div class="box why">
+    <span class="box-label">3 — Await the email instead of fire-and-forget</span>
+    <p>
+      The waitlist route fires the email and forgets it (line 145) because a real
+      person is staring at a loading spinner, waiting for a response.
+    </p>
+    <p style="margin-top:7px">
+      <strong>Here, nobody is waiting.</strong> The login already finished several
+      steps ago. So you can safely <code>await</code> the send and record whether it
+      actually worked — which is what makes retries possible.
+    </p>
+  </div>
+
+  <h3>6.3 &nbsp;The logic, step by step</h3>
+
+  <h4 class="step">STEP 1 — Check the secret, before anything else</h4>
+  <p>
+    Read the <code>x-fitverse-hook-secret</code> header and compare it to
+    <code>process.env.LOGIN_HOOK_SECRET</code>. If missing or wrong → return
+    <strong>401</strong> and stop immediately. Do nothing else — do not parse the
+    body, do not log it.
+  </p>
+
+  <div class="concept">
+    <div class="concept-head">Concept: timing-safe comparison</div>
+    <div class="concept-body">
+      <dl>
+        <dt>What it is</dt>
+        <dd>A way of comparing two secrets that always takes exactly the same amount of time, regardless of how similar they are. In Node.js: <code>crypto.timingSafeEqual</code>.</dd>
+        <dt>Why a normal <code>===</code> is unsafe</dt>
+        <dd>
+          A normal comparison stops at the first wrong character. So comparing
+          <code>"abc..."</code> takes microscopically longer than <code>"xbc..."</code>
+          if your secret starts with "a". An attacker who measures thousands of
+          requests can use those tiny differences to guess your secret one character
+          at a time. This is called a <strong>timing attack</strong>.
+        </dd>
+        <dt>What you do</dt>
+        <dd>Use <code>crypto.timingSafeEqual</code> instead of <code>===</code> for the secret check. Everywhere else, <code>===</code> is fine.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <h4 class="step">STEP 2 — Parse the JSON</h4>
+  <p>
+    Wrap <code>request.json()</code> in a try/catch → return <strong>400</strong> on
+    malformed JSON. Identical to waitlist route lines 100–107.
+  </p>
+
+  <h4 class="step">STEP 3 — Validate with Zod</h4>
+  <p>
+    Build a schema requiring <code>session_id</code> (uuid), <code>user_id</code>
+    (uuid) and <code>occurred_at</code> (datetime), with <code>user_agent</code> and
+    <code>ip</code> optional/nullable. Use <code>safeParse</code> → return
+    <strong>422</strong> on failure, exactly like waitlist route lines 110–116.
+  </p>
+
+  <div class="box why">
+    <span class="box-label">Why validate at all, if only Supabase calls this?</span>
+    <p>
+      Because "only Supabase calls this" is an assumption, and security means not
+      relying on assumptions. Validation also catches your own mistakes — a typo in
+      the trigger's JSON body shows up as a clean 422 in your logs instead of a
+      confusing database error later.
+    </p>
+  </div>
+
+  <h4 class="step">STEP 4 — Hash the IP</h4>
+  <p>
+    Call your existing <code>hashIP()</code> if an IP came through. Note the
+    difference from the waitlist route: <strong>there</strong>, the IP is read from
+    request headers because the user's browser makes the call. <strong>Here</strong>,
+    the IP arrives in the request body, because the caller is your database, not the
+    user.
+  </p>
+
+  <h4 class="step">STEP 5 — Insert the row first, before sending anything</h4>
+  <p>
+    Insert with <code>email_status: 'pending'</code>. Writing the record
+    <em>before</em> attempting the email is what makes retries possible — if the
+    send fails, you still have a record saying "this one needs another try".
+  </p>
+
+  <h4 class="step">STEP 6 — Catch error 23505</h4>
+  <p>
+    Check for it the same way waitlist route lines 127–131 does. If it fires, this
+    session has already been handled — <strong>return 200 immediately and send no
+    email.</strong>
+  </p>
+  <p>
+    This is the entire duplicate defence, and it is one <code>if</code> statement.
+    For any <em>other</em> database error: log it and return <strong>500</strong>.
+  </p>
+
+  <div class="concept">
+    <div class="concept-head">Concept: PostgreSQL error 23505</div>
+    <div class="concept-body">
+      <dl>
+        <dt>What it is</dt>
+        <dd>The standard error code PostgreSQL returns for "unique constraint violated" — meaning "you tried to insert a value that already exists".</dd>
+        <dt>Why you check the code, not the message</dt>
+        <dd>Error messages are written for humans and can change between database versions or languages. Error <em>codes</em> are stable and standardised.</dd>
+        <dt>Where you have seen it before</dt>
+        <dd>Your waitlist route already uses it to detect somebody signing up twice with the same email. Same code, same technique, new purpose.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <h4 class="step">STEP 7 — Look up the user's email address</h4>
+  <p>The session data contains no email address, only a user ID. Use the admin client:</p>
+<pre><code>getSupabaseAdmin().auth.admin.getUserById(user_id)</code></pre>
+  <p>
+    This requires the service role key, which you already have configured. Pull out
+    the email address and any display name stored in the user's metadata.
+  </p>
+
+  <h4 class="step">STEP 8 — Handle a missing email address</h4>
+  <p>
+    If there is no address, update the row to <code>email_status: 'skipped'</code>
+    and return <strong>200</strong>. This is <em>not</em> an error — there is simply
+    nothing to send.
+  </p>
+
+  <h4 class="step">STEP 9 — Send via Resend</h4>
+  <p>
+    Import the existing <code>resend</code> object from
+    <span class="filepath">lib/resend.ts</span>. Use the same call shape as waitlist
+    route lines 146–152, but with:
+  </p>
+<pre><code>from: "FitVerse Security &lt;security@fitverse.app&gt;"</code></pre>
+  <p>and your new login template. Wrap the <code>await</code> in a try/catch.</p>
+
+  <h4 class="step">STEP 10 — Record the outcome</h4>
+  <ul>
+    <li><strong>Success</strong> → set <code>email_status: 'sent'</code>, <code>email_sent_at</code> to now, increment <code>email_attempts</code>.</li>
+    <li><strong>Failure</strong> → set <code>email_status: 'failed'</code>, store the message in <code>email_error</code>, increment <code>email_attempts</code>.</li>
+  </ul>
+
+  <h4 class="step">STEP 11 — Return 200 either way</h4>
+
+  <div class="box important">
+    <span class="box-label">Important — this bit is counterintuitive</span>
+    <p>
+      <strong>Even if the email failed, return 200.</strong>
+    </p>
+    <p style="margin-top:7px">
+      A non-2xx response tells the caller "please retry me" — and
+      <code>pg_net</code> will not retry anyway. So returning 500 achieves nothing
+      except noise in your logs. The failure is <em>already recorded in the row</em>,
+      which is exactly where your retry job will look for it.
+    </p>
+    <p style="margin-top:7px">
+      Return 200 with a small body like <code>{ handled: true, email: "failed" }</code>
+      so your logs stay readable and honest.
+    </p>
+  </div>
+
+  <p><strong>Reserve non-200 responses for:</strong></p>
+  <ul>
+    <li><strong>401</strong> — bad or missing secret</li>
+    <li><strong>400 / 422</strong> — malformed or invalid request</li>
+    <li><strong>500</strong> — genuine server error, e.g. the database is unreachable</li>
+  </ul>
+</section>
+
+<!-- ══════════════════════ 7. RESEND ══════════════════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 07 &middot; Step 4</div>
+  <h2 class="sec-title">Resend Configuration</h2>
+
+  <h3>7.1 &nbsp;Domain verification</h3>
+
+  <div class="concept">
+    <div class="concept-head">Concept: why a domain needs "verifying"</div>
+    <div class="concept-body">
+      <dl>
+        <dt>The problem</dt>
+        <dd>Email was designed without security. Anyone can technically send an email claiming to be <code>security@fitverse.app</code>.</dd>
+        <dt>The solution</dt>
+        <dd>You add records to your domain's DNS settings that prove to receiving mail servers "yes, Resend really is allowed to send on my behalf."</dd>
+        <dt>What happens if you skip it</dt>
+        <dd>Gmail and Outlook put your mail in spam, or reject it outright.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <h4 class="step">WHAT YOU NEED TO DO</h4>
+  <p>
+    Resend Dashboard → <strong>Domains</strong> → find your <code>fitverse.app</code>
+    entry. <strong>Confirm it shows "Verified"</strong> before relying on it.
+  </p>
+
+  <div class="box tip">
+    <span class="box-label">Tip — it may already be done</span>
+    <p>
+      Your code already sends from <code>hello@fitverse.app</code> (waitlist route,
+      line 147), so the domain is probably already verified. Check rather than
+      assume.
+    </p>
+  </div>
+
+  <h3>7.2 &nbsp;The three DNS records</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:16%">Record</th><th style="width:26%">Who provides it</th><th>What it does, in plain terms</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>SPF</strong></td>
+        <td>Resend gives you the exact record</td>
+        <td>A public list of who is allowed to send email as <code>fitverse.app</code>. Like a guest list on the door.</td>
+      </tr>
+      <tr>
+        <td><strong>DKIM</strong></td>
+        <td>Resend gives you the exact record</td>
+        <td>A cryptographic signature on every email, so receivers can prove it really came from you and wasn't altered. Like a wax seal.</td>
+      </tr>
+      <tr>
+        <td><strong>DMARC</strong></td>
+        <td><strong>You write this one yourself</strong></td>
+        <td>Tells receiving servers what to do with mail that fails the two checks above. Like instructions to the doorman.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>You add all three at your domain registrar (wherever you bought <code>fitverse.app</code>).</p>
+
+  <h4>Setting up DMARC safely</h4>
+  <p>Add a TXT record at <code>_dmarc.fitverse.app</code>.</p>
+
+  <div class="box warning">
+    <span class="box-label">Warning — do not start strict</span>
+    <p>
+      Start with a monitoring-only policy (<code>p=none</code>) plus a reporting
+      address, and watch for about a week. Then tighten to <code>quarantine</code>,
+      and eventually <code>reject</code>.
+    </p>
+    <p style="margin-top:7px">
+      Going straight to <code>reject</code> can <strong>silently kill your own
+      email</strong> if anything is misconfigured — and you won't find out, because
+      the messages simply vanish.
+    </p>
+  </div>
+
+  <div class="box why">
+    <span class="box-label">Why deliverability matters more here than for the waitlist</span>
+    <p>
+      A welcome email landing in spam is a minor annoyance. <strong>A security alert
+      landing in spam is a security feature that does not exist.</strong> This is the
+      one email you cannot afford to have filtered.
+    </p>
+  </div>
+
+  <h3>7.3 &nbsp;Sender address</h3>
+
+  <p>Use <strong><code>security@fitverse.app</code></strong> with the display name <strong>"FitVerse Security"</strong>.</p>
+
+  <div class="box why">
+    <span class="box-label">Why not reuse hello@fitverse.app?</span>
+    <p>
+      Keep it separate from your existing <code>hello@fitverse.app</code>. If someone
+      marks a waitlist marketing email as spam, you do not want that damaging the
+      reputation of your security alerts. Different purposes, different addresses,
+      separate reputations.
+    </p>
+  </div>
+
+  <h3>7.4 &nbsp;Where the API key belongs — and where it must not</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:22%"></th><th>Location</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="yes">MUST be in</td>
+        <td>
+          <span class="filepath">.env.local</span> for local development · Vercel
+          Environment Variables for production · read only through
+          <code>process.env.RESEND_API_KEY</code> inside
+          <span class="filepath">lib/resend.ts</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="no">MUST NEVER be in</td>
+        <td>
+          Any <code>NEXT_PUBLIC_*</code> variable · any file marked
+          <code>"use client"</code> · any file committed to git · any error message
+          returned to a caller · any screenshot or Slack message
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>7.5 &nbsp;The two new environment variables</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:30%">Name</th><th>Value and notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>LOGIN_HOOK_SECRET</code></td><td>32+ random characters. <strong>Must exactly match</strong> the Vault secret you created in Section&nbsp;4.5.</td></tr>
+      <tr><td><code>ADMIN_ALERT_EMAIL</code></td><td>Where the daily digest goes. Use a team alias, not a personal inbox — people leave companies.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>7.6 &nbsp;Test Resend on its own, before connecting anything</h3>
+
+  <div class="box tip">
+    <span class="box-label">Tip — you have a shortcut most projects don't</span>
+    <p>
+      <strong>Submit your own waitlist form.</strong> It already runs the complete
+      path: a Supabase insert followed by a Resend send, using the same client and
+      the same API key.
+    </p>
+    <p style="margin-top:7px">
+      If a welcome email arrives → Resend works and your domain is verified. If it
+      does not → fix that <em>first</em>, in isolation, before you add login
+      notifications on top. Debugging one broken thing is easy; debugging two at once
+      is miserable.
+    </p>
+  </div>
+
+  <div class="box important">
+    <span class="box-label">Important — a silent-failure trap in your current setup</span>
+    <p>
+      <span class="filepath">lib/resend.ts</span> falls back to the placeholder string
+      <code>"re_placeholder"</code> when the API key is missing. This means a
+      misconfigured deployment does <strong>not</strong> crash — it just quietly
+      fails to send anything.
+    </p>
+    <p style="margin-top:7px">
+      That is acceptable for waitlist mail. For security alerts you may prefer it to
+      fail loudly at startup so you find out immediately. Your call — but decide
+      consciously rather than by accident.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════ 8. USER EMAIL ═══════════════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 08 &middot; Step 5</div>
+  <h2 class="sec-title">The User Login Email</h2>
+
+  <h3>8.1 &nbsp;Subject line</h3>
+
+  <p>Recommended: <strong>"New sign-in to your FitVerse account"</strong></p>
+
+  <div class="box why">
+    <span class="box-label">Why not "FITVERSE — New Login Detected"?</span>
+    <p>
+      Two reasons. <strong>All-caps brand names raise spam scores</strong> with mail
+      filters. And <strong>"Detected" sounds like something went wrong</strong> even
+      when it was the user themselves — which trains people to feel anxious about a
+      routine message, or to start ignoring it.
+    </p>
+  </div>
+
+  <h3>8.2 &nbsp;Recommended email structure</h3>
+
+<pre><code>From:    FitVerse Security &lt;security@fitverse.app&gt;
+Subject: New sign-in to your FitVerse account
+
+Hi [Name],
+
+Your FitVerse account was signed in to just now.
+
+  When:    18 August 2026, 9:42 PM IST
+  Device:  Chrome on Windows
+  Account: v••••l@gmail.com
+
+If this was you, no action needed.
+
+If this wasn't you, secure your account now:
+
+  [ Reset your password ]  -&gt;  https://fitverse.app/reset-password
+
+Questions? Reply to this email or contact hello@fitverse.app.
+
+— The FitVerse team</code></pre>
+
+  <h3>8.3 &nbsp;What to include, and why each part earns its place</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:30%">Item</th><th>Why it is there</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Their name</strong></td><td>Generic, nameless emails read as phishing. Personalisation is a trust signal.</td></tr>
+      <tr><td><strong>Login time, with timezone</strong></td><td>Your users are in India — say <strong>IST</strong>. A bare "3:12 PM" with no timezone is useless for judging "was that me?"</td></tr>
+      <tr><td><strong>Device / browser</strong></td><td>The fastest way for someone to recognise "that definitely wasn't me — I don't own a Mac."</td></tr>
+      <tr><td><strong>Account email, partly masked</strong></td><td>Confirms <em>which</em> account this is about, while masking limits the damage if the email gets forwarded or screenshotted.</td></tr>
+      <tr><td><strong>Approximate location</strong></td><td><em>Optional, skip in v1.</em> Requires a paid IP-lookup service. Useful later, not essential now.</td></tr>
+      <tr><td><strong>A clear security warning</strong></td><td>Tells them plainly what to do if it wasn't them.</td></tr>
+      <tr><td><strong>One obvious action</strong></td><td>A password reset link. <strong>An alert with nothing to do is just noise.</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>8.4 &nbsp;Never include</h3>
+
+  <div class="box warning">
+    <span class="box-label">Warning — must never appear in this email</span>
+    <ul style="margin-bottom:0">
+      <li><strong>The password.</strong> Ever, in any form, even partially.</li>
+      <li><strong>JWTs, access tokens, refresh tokens, session tokens.</strong></li>
+      <li><strong>API keys or secrets</strong> of any kind.</li>
+      <li><strong>A link that logs somebody in automatically.</strong> The reset link must require identity confirmation — otherwise your security email becomes a skeleton key sitting in an inbox.</li>
+      <li><strong>The full session ID.</strong> Internal plumbing, of no use to the reader.</li>
+      <li><strong>The raw IP address.</strong> You only stored a hash anyway, and it means nothing to most users.</li>
+      <li><strong>Any other user's information.</strong></li>
+    </ul>
+  </div>
+
+  <div class="box tip">
+    <span class="box-label">Tip — the one-question test</span>
+    <p>
+      Before sending any version of this email, ask: <strong>"If this were forwarded
+      to a complete stranger, could they do any harm with it?"</strong>
+      The answer must be <em>no</em>. If it is anything else, remove something.
+    </p>
+  </div>
+
+  <h3>8.5 &nbsp;Where to put the template</h3>
+
+  <p>
+    Your existing templates live in
+    <span class="filepath">fitverse/app/privacy/email-templates.ts</span>, and each
+    has an <strong>HTML version and a plain-text version</strong>. Follow that
+    two-version pattern — some email clients block HTML, and a plain-text fallback
+    means your security alert still arrives readable.
+  </p>
+
+  <div class="box important">
+    <span class="box-label">Important — a note about that file path</span>
+    <p>
+      That path is odd: an email template sitting inside a folder named
+      <code>privacy</code>, inside a duplicated <code>app</code> tree. It works, so
+      you are not obliged to move it — but you may prefer to put the new template
+      somewhere clearer, such as <span class="filepath">lib/emails/</span>.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════ 9. ADMIN NOTIFICATION ═══════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 09 &middot; Step 6</div>
+  <h2 class="sec-title">FitVerse Admin Notification</h2>
+
+  <p class="lead">
+    You originally asked for an email to your team on every login. I am going to
+    recommend against it — and explain the reasoning clearly enough that you can
+    disagree if you want to.
+  </p>
+
+  <h3>9.1 &nbsp;The three options compared</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:8%"></th><th style="width:26%">Option</th><th>Assessment</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>A</strong></td>
+        <td>Email for <strong>every</strong> login</td>
+        <td>Works today with zero users. At 500 users logging in twice a day, that is <strong>1,000 emails a day</strong> to your team. You will create an inbox filter within a week — and then the one login that actually mattered gets filtered too. <strong>Option A does not fail loudly; it fails by being ignored</strong>, which is worse than not building it.</td>
+      </tr>
+      <tr>
+        <td><strong>B</strong></td>
+        <td><strong>Daily digest</strong></td>
+        <td>One readable email per day. Uses the same table, no new plumbing. Gives you the data you will need to define "suspicious" later.</td>
+      </tr>
+      <tr>
+        <td><strong>C</strong></td>
+        <td><strong>Suspicious logins only</strong></td>
+        <td>Genuinely the best long-term answer — but it needs a definition of "suspicious", which needs device fingerprinting and a baseline of normal behaviour. <strong>You have no users yet, so you have no baseline.</strong> Not buildable today.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="box rec">
+    <span class="box-label">✓ Recommendation for FitVerse right now</span>
+    <p style="font-size:10.5pt"><strong>Option B — the daily digest.</strong></p>
+    <ul style="margin-top:8px;margin-bottom:0">
+      <li>One email a day, so it stays readable and you will actually read it.</li>
+      <li>Uses the same <code>login_events</code> table — no new infrastructure.</li>
+      <li>Collects exactly the data you need to <em>define</em> "suspicious" later, so it is the natural stepping stone to Option C in six months.</li>
+      <li>During early testing you can run it hourly, or point it at Slack, without changing the design at all.</li>
+    </ul>
+  </div>
+
+  <h3>9.2 &nbsp;How you would build it — later</h3>
+
+  <div class="box important">
+    <span class="box-label">Important — sequencing</span>
+    <p>
+      <strong>Build this after the user emails are fully working.</strong> Do not do
+      both at once. If something breaks, you want to know which half broke.
+    </p>
+  </div>
+
+  <ol>
+    <li><strong>A second endpoint</strong> — <span class="filepath">app/api/admin/login-digest/route.ts</span>, protected by the same shared-secret pattern as your login route.</li>
+    <li><strong>It queries</strong> <code>login_events</code> for rows where <code>occurred_at</code> falls in the last 24 hours, and counts: total logins, unique users, and any rows where <code>email_status = 'failed'</code>.</li>
+    <li><strong>It sends one email</strong> to <code>ADMIN_ALERT_EMAIL</code> via Resend.</li>
+    <li><strong>Something calls it once a day</strong> — either Vercel Cron (configured in <code>vercel.json</code>) or Supabase's <code>pg_cron</code> extension. <strong>Vercel Cron is simpler</strong>, since the endpoint already lives there.</li>
+  </ol>
+
+  <div class="box tip">
+    <span class="box-label">Tip</span>
+    <p>
+      The <code>login_events_digest_idx</code> index from Section&nbsp;05 exists
+      specifically to make this query fast. You already built the foundation for this
+      step.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════ 10. DUPLICATE PROTECTION ════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 10 &middot; Step 7</div>
+  <h2 class="sec-title">Duplicate Protection</h2>
+
+  <h3>10.1 &nbsp;The idea, in everyday terms</h3>
+
+  <div class="box why">
+    <span class="box-label">The cloakroom ticket</span>
+    <p>
+      Think of a <strong>cloakroom ticket</strong>. You hand over your coat and get
+      ticket #4471. If you turn up with #4471 a second time, the attendant says
+      "already collected" — they do not hand you a second coat. The ticket number is
+      unique, so it can only be redeemed once.
+    </p>
+    <p style="margin-top:8px">
+      <strong><code>session_id</code> is the ticket. The unique constraint is the
+      attendant.</strong> Even if your API is called five times with the same session
+      ID, only the first insert succeeds — the other four hit error
+      <code>23505</code> and get turned away.
+    </p>
+  </div>
+
+  <div class="box important">
+    <span class="box-label">Important — why the check must live in the database</span>
+    <p>
+      Serverless functions can run several copies of themselves at the same instant.
+      Two copies could both check "does this exist?", both be told "no", and both
+      send an email.
+    </p>
+    <p style="margin-top:7px">
+      <strong>The database cannot make that mistake.</strong> A unique constraint is
+      enforced at the storage layer, where only one write can possibly win. This is
+      why we do not write duplicate-checking logic in TypeScript.
+    </p>
+  </div>
+
+  <h3>10.2 &nbsp;Every scenario, and exactly what happens</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:31%">What happens</th>
+        <th class="ctr" style="width:15%">New session?</th>
+        <th class="ctr" style="width:13%">Email?</th>
+        <th>Why</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>User types email + password and signs in</strong></td>
+        <td class="ctr yes">Yes</td>
+        <td class="ctr yes">YES</td>
+        <td>This is the real thing. Exactly what you want.</td>
+      </tr>
+      <tr>
+        <td><strong>Supabase sends the webhook twice</strong></td>
+        <td class="ctr">No — same session</td>
+        <td class="ctr no">No</td>
+        <td>Second insert hits <code>23505</code>; the route returns 200 and stops.</td>
+      </tr>
+      <tr>
+        <td><strong>User refreshes the page</strong></td>
+        <td class="ctr no">No</td>
+        <td class="ctr no">No</td>
+        <td>The existing session is reused. Nothing new is created.</td>
+      </tr>
+      <tr>
+        <td><strong>App is closed and reopened</strong></td>
+        <td class="ctr no">No</td>
+        <td class="ctr no">No</td>
+        <td>The saved session is restored, not recreated.</td>
+      </tr>
+      <tr>
+        <td><strong>Token refreshes (roughly hourly)</strong></td>
+        <td class="ctr no">No</td>
+        <td class="ctr no">No</td>
+        <td><strong>The key one.</strong> A refresh updates the existing session's timestamp — it does not insert a new row. Your trigger only fires on <code>INSERT</code>, so it never runs at all.</td>
+      </tr>
+      <tr>
+        <td><strong>Session restored from storage</strong></td>
+        <td class="ctr no">No</td>
+        <td class="ctr no">No</td>
+        <td>Nothing is inserted, so nothing fires.</td>
+      </tr>
+      <tr>
+        <td><strong>User logs out, then logs back in</strong></td>
+        <td class="ctr yes">Yes, brand new</td>
+        <td class="ctr yes">YES</td>
+        <td>New session, new ID, new email. Correct — this genuinely is a new login.</td>
+      </tr>
+      <tr>
+        <td><strong>Same person on phone and laptop</strong></td>
+        <td class="ctr yes">Two sessions</td>
+        <td class="ctr yes">TWO</td>
+        <td>Correct — two devices are two things worth knowing about.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="box tip">
+    <span class="box-label">Tip — the insight worth remembering</span>
+    <p>
+      The scenario you were most worried about — the hourly token refresh — is
+      handled <strong>by physics rather than by logic</strong>. There is no
+      <code>INSERT</code>, so there is no trigger, so there is no email. Nothing to
+      configure, nothing to get wrong.
+    </p>
+    <p style="margin-top:7px">
+      <strong>This is precisely why the server-side design beats client-side
+      detection.</strong> You are not filtering out false alarms — they never occur
+      in the first place.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════ 11. FAILURE HANDLING ════════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 11 &middot; Step 8</div>
+  <h2 class="sec-title">Failure Handling</h2>
+
+  <div class="box warning">
+    <span class="box-label">The governing rule of this entire feature</span>
+    <p style="font-size:11pt">
+      <strong>A failed email must NEVER prevent a user from logging into FitVerse.</strong>
+    </p>
+    <p style="margin-top:8px">
+      Your architecture enforces this structurally — the notification runs
+      <em>after</em> the login, in a separate process. Even total failure of every
+      component below leaves login completely untouched.
+    </p>
+  </div>
+
+  <h3>11.1 &nbsp;Every failure scenario</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:4%">#</th>
+        <th style="width:22%">Situation</th>
+        <th style="width:19%">What happens to login</th>
+        <th>What happens to the email</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1</strong></td><td><strong>API route is down</strong></td>
+        <td class="yes">Unaffected — works normally</td>
+        <td><code>net.http_post</code> queues the call, it fails, the database moves on. No email, no record.</td>
+      </tr>
+      <tr>
+        <td><strong>2</strong></td><td><strong>Resend is down</strong></td>
+        <td class="yes">Unaffected — works normally</td>
+        <td>Row is already saved as <code>pending</code>. The send throws, gets caught, row is marked <code>failed</code> with the error text. The retry job picks it up later. <strong>Nothing is lost.</strong></td>
+      </tr>
+      <tr>
+        <td><strong>3</strong></td><td><strong>Database insert fails</strong> (not a duplicate)</td>
+        <td class="yes">Unaffected — works normally</td>
+        <td>Logged, route returns 500. No email, no record. Rare, and visible in monitoring.</td>
+      </tr>
+      <tr>
+        <td><strong>4</strong></td><td><strong>Email sending fails</strong></td>
+        <td class="yes">Unaffected — works normally</td>
+        <td>Same as #2 — recorded as <code>failed</code>, not lost.</td>
+      </tr>
+      <tr>
+        <td><strong>5</strong></td><td><strong>Webhook fires twice</strong></td>
+        <td class="yes">Unaffected — works normally</td>
+        <td>Second insert hits <code>23505</code> → return 200, no second email.</td>
+      </tr>
+      <tr>
+        <td><strong>6</strong></td><td><strong>User has no email address</strong></td>
+        <td class="yes">Unaffected — works normally</td>
+        <td>Row marked <code>skipped</code>, return 200. Not treated as an error.</td>
+      </tr>
+      <tr>
+        <td><strong>7</strong></td><td><strong>Invalid request body</strong></td>
+        <td class="yes">Unaffected — works normally</td>
+        <td>Zod rejects it → 400 or 422. Nothing saved, nothing sent.</td>
+      </tr>
+      <tr>
+        <td><strong>8</strong></td><td><strong>Someone calls the endpoint manually</strong></td>
+        <td class="yes">Unaffected — works normally</td>
+        <td>No valid secret → <strong>401 immediately</strong>, before any parsing. Nothing saved, no email. <strong>This is the attack you most need to block</strong> — otherwise anyone could spam a user's inbox with fake alerts.</td>
+      </tr>
+      <tr>
+        <td><strong>9</strong></td><td><strong>Same session ID submitted twice</strong></td>
+        <td class="yes">Unaffected — works normally</td>
+        <td>Same as #5. The database refuses it.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="box tip">
+    <span class="box-label">Tip — notice the pattern</span>
+    <p>
+      Every single row says login is unaffected. <strong>That is not luck</strong> —
+      it is what "trigger fires after the login, in a separate process, wrapped in an
+      exception handler" buys you. The safety is designed in, not bolted on.
+    </p>
+  </div>
+
+  <h3>11.2 &nbsp;The retry job</h3>
+
+  <p><strong>Build this after the main flow works.</strong></p>
+
+  <p>
+    A scheduled task that finds rows where <code>email_status</code> is
+    <code>'pending'</code> or <code>'failed'</code> <em>and</em>
+    <code>email_attempts &lt; 3</code>, then tries sending again. The
+    <code>login_events_retry_idx</code> index exists for exactly this query.
+  </p>
+
+  <div class="box important">
+    <span class="box-label">Important — do not retry forever</span>
+    <p>
+      Cap it at three attempts. After that, leave the row marked
+      <code>failed</code> and let the daily digest surface it. Infinite retries turn
+      one broken email into thousands of pointless API calls, and can get your Resend
+      account rate-limited.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════ 12. SECURITY ════════════════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 12 &middot; Step 9</div>
+  <h2 class="sec-title">Security &amp; Privacy</h2>
+
+  <p class="lead">
+    Each item below includes <em>why</em> it matters. Security checklists you follow
+    without understanding are the ones you quietly skip when you are in a hurry.
+  </p>
+
+  <h3>12.1 &nbsp;Secrets</h3>
+
+  <ul class="checklist">
+    <li><code>LOGIN_HOOK_SECRET</code> is 32+ random characters from a password manager — not something you typed.<br><em>Why: human-invented strings are guessable; generated ones are not.</em></li>
+    <li>The same value exists in Supabase Vault <strong>and</strong> your hosting environment — and nowhere else.<br><em>Why: every extra copy is another place it can leak from.</em></li>
+    <li>Compared with <code>crypto.timingSafeEqual</code>, never <code>===</code>.<br><em>Why: prevents timing attacks that reveal your secret one character at a time.</em></li>
+    <li>The trigger function reads it from Vault, not hardcoded in the function body.<br><em>Why: anyone who can read your database functions would otherwise read your secret.</em></li>
+    <li><code>SUPABASE_SERVICE_ROLE_KEY</code> has <strong>no</strong> <code>NEXT_PUBLIC_</code> prefix — already correct in <span class="filepath">lib/supabase.ts</span>.<br><em>Why: this key bypasses all security rules. In a browser it is total database compromise.</em></li>
+    <li><code>RESEND_API_KEY</code> likewise — already correct in <span class="filepath">lib/resend.ts</span>.<br><em>Why: a leaked key lets anyone send email as FitVerse.</em></li>
+    <li><strong><code>.env</code> added to <span class="filepath">.gitignore</span></strong> — currently only <code>.env*.local</code> is covered.<br><em>Why: a secret committed to git is compromised permanently, even after deletion.</em></li>
+    <li>No secret ever appears in a response body or an error message.<br><em>Why: error responses get logged, screenshotted and pasted into chat.</em></li>
+  </ul>
+
+  <h3>12.2 &nbsp;The endpoint</h3>
+
+  <ul class="checklist">
+    <li>Secret is checked <strong>first</strong>, before parsing anything at all.<br><em>Why: gives an attacker the smallest possible surface to interact with.</em></li>
+    <li><code>POST</code> only; <code>GET</code> returns 405.<br><em>Why: reduces accidental exposure and search-engine crawling.</em></li>
+    <li>No CORS headers — this is server-to-server.<br><em>Why: CORS would invite browser traffic you never want.</em></li>
+    <li>Every input validated by Zod before it touches the database.<br><em>Why: malformed data becomes a clean 422 instead of a confusing database error.</em></li>
+    <li>Error responses are generic; real details go only to <code>console.error</code>, matching waitlist route line 137.<br><em>Why: detailed errors tell attackers how your system is built.</em></li>
+  </ul>
+
+  <h3>12.3 &nbsp;Data protection</h3>
+
+  <ul class="checklist">
+    <li>RLS enabled on <code>login_events</code>, with only a read-your-own policy.<br><em>Why: makes leaking another user's login history structurally impossible, not just unlikely.</em></li>
+    <li>IPs hashed with your existing <code>hashIP()</code> — raw IPs never stored.<br><em>Why: you keep the ability to spot patterns without holding data that can locate someone.</em></li>
+    <li><code>IP_HASH_SALT</code> is set to a real value in production.<br><em>Why: waitlist route line 27 falls back to the literal string <code>"fitverse-salt"</code>, which is visible in your source code and therefore public. <strong>A known salt makes hashes reversible by brute force.</strong> Check this one.</em></li>
+    <li>A retention policy — delete rows older than 90 days on a schedule.<br><em>Why: data you no longer hold cannot be breached, subpoenaed or leaked.</em></li>
+    <li><code>on delete cascade</code> means account deletion removes login history automatically.<br><em>Why: satisfies "right to erasure" without anyone remembering to do it manually.</em></li>
+  </ul>
+
+  <h3>12.4 &nbsp;Rate limiting</h3>
+
+  <ul class="checklist">
+    <li>Do not copy the in-memory <code>Map</code> from the waitlist route.<br><em>Why: on serverless, each instance has separate memory, so the limit does not reliably hold.</em></li>
+    <li>The unique constraint plus the shared secret are your real protections.<br><em>Why: both are enforced in places an attacker cannot reach.</em></li>
+    <li>Optionally add a per-user cooldown query.<br><em>Why: so somebody logging in 20 times an hour does not receive 20 emails and learn to ignore them.</em></li>
+  </ul>
+
+  <h3>12.5 &nbsp;Logging</h3>
+
+  <ul class="checklist">
+    <li>Never log full request bodies containing personal data.<br><em>Why: logs are widely readable, retained a long time, and often shipped to third-party services.</em></li>
+    <li>Log outcomes and error codes, not payloads.<br><em>Why: gives you everything needed to debug, without creating a second copy of personal data.</em></li>
+  </ul>
+
+  <h3>12.6 &nbsp;Privacy and compliance</h3>
+
+  <div class="box warning">
+    <span class="box-label">Warning — a compliance step you must not skip</span>
+    <p>
+      <strong>Update <span class="filepath">app/privacy/page.tsx</span>.</strong> Its
+      "Information We Collect" list does not currently mention login metadata. Under
+      <strong>India's DPDP Act</strong>, you should be able to state what you collect,
+      why you collect it, and how long you keep it.
+    </p>
+  </div>
+
+  <ul class="checklist">
+    <li>Add login metadata (time, device, hashed IP) to the Privacy Policy's collection list.<br><em>Why: legally required, and it is the honest thing to do.</em></li>
+    <li>State the 90-day retention period explicitly.<br><em>Why: "how long" is a specific requirement under both DPDP and GDPR.</em></li>
+    <li>Say that security alerts are transactional and have no unsubscribe link.<br><em>Why: this is normal and legal for security messages — but you must say so, rather than leaving people confused about why they cannot opt out.</em></li>
+    <li>Mask the email address inside the email itself.<br><em>Why: limits exposure if the message is forwarded or shown on a shared screen.</em></li>
+  </ul>
+</section>
+
+<!-- ══════════════════════ 13. TESTING ═════════════════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 13 &middot; Step 10</div>
+  <h2 class="sec-title">Testing</h2>
+
+  <p class="lead">
+    Test in this order. Do not move to the next stage until the current one fully
+    passes — debugging one broken thing is easy, debugging four at once is not.
+  </p>
+
+  <h3>13.1 &nbsp;Stage 1 — Before connecting anything</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:18%">Test</th><th style="width:24%">What you do</th><th style="width:24%">What should happen</th><th class="ctr" style="width:11%">Email?</th><th>Database result</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Resend works</strong></td><td>Submit your own waitlist form</td><td>Welcome email arrives</td><td class="ctr yes">Yes</td><td>Row in <code>waitlist</code></td></tr>
+      <tr><td><strong>Table exists</strong></td><td>Run <code>select * from login_events</code></td><td>Empty result, no error</td><td class="ctr">—</td><td>No rows yet</td></tr>
+      <tr><td><strong>RLS blocks</strong></td><td>Query as a normal logged-in user</td><td>Zero rows returned</td><td class="ctr">—</td><td>Nothing visible</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>13.2 &nbsp;Stage 2 — The endpoint alone (curl or Postman, no Supabase)</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:19%">Test</th><th style="width:25%">What you do</th><th style="width:19%">What should happen</th><th class="ctr" style="width:11%">Email?</th><th>Database result</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Unauthorized</strong></td><td>POST with no secret header</td><td><strong>401</strong></td><td class="ctr no">No</td><td class="no">No row</td></tr>
+      <tr><td><strong>Wrong secret</strong></td><td>POST with an incorrect secret</td><td><strong>401</strong></td><td class="ctr no">No</td><td class="no">No row</td></tr>
+      <tr><td><strong>Invalid body</strong></td><td>Valid secret, <code>{"hello":"world"}</code></td><td><strong>422</strong></td><td class="ctr no">No</td><td class="no">No row</td></tr>
+      <tr><td><strong>Bad JSON</strong></td><td>Valid secret, malformed body</td><td><strong>400</strong></td><td class="ctr no">No</td><td class="no">No row</td></tr>
+      <tr><td><strong>Wrong method</strong></td><td>Send a GET request</td><td><strong>405</strong></td><td class="ctr no">No</td><td class="no">No row</td></tr>
+      <tr><td><strong>Valid call</strong></td><td>Valid secret, real user ID, made-up session ID</td><td><strong>200</strong></td><td class="ctr yes">Yes</td><td class="yes">One row, <code>sent</code></td></tr>
+      <tr><td><strong>Duplicate session</strong></td><td>Repeat the exact same call</td><td><strong>200</strong></td><td class="ctr no">No second email</td><td>Still exactly one row</td></tr>
+      <tr><td><strong>Unknown user</strong></td><td>Valid body, random user ID</td><td>200 or 500, no crash</td><td class="ctr no">No</td><td>Check behaviour matches your code</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="box important">
+    <span class="box-label">Important — the test that matters most in this stage</span>
+    <p>
+      <strong>The duplicate test.</strong> Run the same call three times and confirm
+      you get exactly <strong>one</strong> row and <strong>one</strong> email. If you
+      get two of either, stop and fix it before going further — everything downstream
+      depends on this working.
+    </p>
+  </div>
+
+  <h3>13.3 &nbsp;Stage 3 — The full flow, with the trigger connected</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:19%">Test</th><th style="width:25%">What you do</th><th style="width:19%">What should happen</th><th class="ctr" style="width:11%">Email?</th><th>Database result</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Successful login</strong></td><td>Sign in with the correct password</td><td>Alert arrives in seconds</td><td class="ctr yes">Yes</td><td class="yes">New row, <code>sent</code></td></tr>
+      <tr><td><strong>Failed login</strong></td><td>Sign in with the <strong>wrong</strong> password</td><td>Nothing at all happens</td><td class="ctr no">No</td><td class="no">No row — no session was created</td></tr>
+      <tr><td><strong>App restart</strong></td><td>Close and reopen the app</td><td>Silence</td><td class="ctr no">No</td><td class="no">No new row</td></tr>
+      <tr><td><strong>Session restore</strong></td><td>Return with a saved session</td><td>Silence</td><td class="ctr no">No</td><td class="no">No new row</td></tr>
+      <tr><td><strong>Token refresh</strong></td><td>Stay logged in ~1 hour past expiry</td><td>Silence</td><td class="ctr no">No</td><td class="no">No new row</td></tr>
+      <tr><td><strong>Logout → login</strong></td><td>Log out, then log back in</td><td>New alert arrives</td><td class="ctr yes">Yes</td><td class="yes">Second row, different <code>session_id</code></td></tr>
+      <tr><td><strong>Two devices</strong></td><td>Log in on phone and laptop</td><td>Two alerts</td><td class="ctr yes">Two</td><td class="yes">Two rows</td></tr>
+      <tr><td><strong>Multiple users</strong></td><td>Two different accounts log in</td><td>Each gets their own only</td><td class="ctr yes">One each</td><td class="yes">Correct <code>user_id</code> on each row</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="box tip">
+    <span class="box-label">Tip — be patient with the token-refresh test</span>
+    <p>
+      Waiting an hour is boring, but this is the exact failure mode that makes login
+      notifications annoying enough that users disable them. <strong>You want to see
+      it not happen with your own eyes.</strong>
+    </p>
+  </div>
+
+  <h3>13.4 &nbsp;Stage 4 — Failure simulation</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:22%">Test</th><th style="width:29%">How to simulate it</th><th style="width:27%">What should happen</th><th class="ctr">Login still works?</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Resend down</strong></td><td>Temporarily set an invalid <code>RESEND_API_KEY</code></td><td>Row saved as <code>failed</code> with an error message</td><td class="ctr yes">YES</td></tr>
+      <tr><td><strong>API route down</strong></td><td>Point the trigger at a wrong URL</td><td>No row, no email, nothing breaks</td><td class="ctr yes">YES</td></tr>
+      <tr><td><strong>Database rejects</strong></td><td>Manually insert a duplicate <code>session_id</code> in SQL Editor</td><td>PostgreSQL raises <code>23505</code></td><td class="ctr yes">YES</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="box warning">
+    <span class="box-label">Warning — the single most important test in this guide</span>
+    <p>
+      <strong>Break Resend completely, then log in.</strong>
+    </p>
+    <p style="margin-top:7px">
+      If you get into FitVerse normally, your architecture is correct. If login hangs
+      or fails, <strong>your trigger's exception handler is not working</strong> —
+      fix it before going anywhere near production. This is the difference between a
+      nice feature and locking every user out of their account.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════ 14. DEPLOYMENT ══════════════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 14 &middot; Step 11</div>
+  <h2 class="sec-title">Deployment</h2>
+
+<pre class="flow">LOCAL SETUP
+     |
+SUPABASE SETUP
+     |
+RESEND SETUP
+     |
+ENVIRONMENT VARIABLES
+     |
+DATABASE MIGRATION
+     |
+API DEPLOYMENT
+     |
+WEBHOOK / HOOK CONFIGURATION
+     |
+TESTING
+     |
+PRODUCTION</pre>
+
+  <h3>14.1 &nbsp;Locally</h3>
+  <ul class="checklist">
+    <li>Add <code>LOGIN_HOOK_SECRET</code> and <code>ADMIN_ALERT_EMAIL</code> to <span class="filepath">.env.local</span></li>
+    <li>Confirm <code>.env</code> is in <span class="filepath">.gitignore</span> before anything else</li>
+    <li>Build the route and test it with curl, using the Stage&nbsp;2 table from Section&nbsp;13</li>
+  </ul>
+
+  <div class="box important">
+    <span class="box-label">Important — a limitation to plan around</span>
+    <p>
+      <strong>Supabase cannot call <code>http://localhost</code>.</strong> Your
+      database lives on Supabase's servers; your local machine is not reachable from
+      there.
+    </p>
+    <p style="margin-top:7px">
+      To test the trigger locally you would need a tunnel such as ngrok or
+      cloudflared, which gives you a temporary public URL.
+      <strong>Or just skip it</strong> — test the endpoint with curl locally, and test
+      the trigger only after deploying. That is simpler, and it is what I would
+      recommend.
+    </p>
+  </div>
+
+  <h3>14.2 &nbsp;In Supabase</h3>
+  <ul class="checklist">
+    <li>Run the <code>login_events</code> SQL migration from Section&nbsp;05</li>
+    <li>Verify RLS is enabled and the read-own policy exists</li>
+    <li>Enable the <code>pg_net</code> extension</li>
+    <li>Store <code>login_hook_secret</code> in Vault</li>
+    <li>Create the trigger function <strong>with its exception handler</strong></li>
+    <li>Attach the <code>AFTER INSERT</code> trigger to <code>auth.sessions</code></li>
+    <li>Point the URL at your <strong>deployed</strong> domain, not localhost</li>
+  </ul>
+
+  <h3>14.3 &nbsp;In Resend</h3>
+  <ul class="checklist">
+    <li>Confirm <code>fitverse.app</code> shows <strong>Verified</strong></li>
+    <li>Confirm DKIM and SPF are present; add DMARC starting at <code>p=none</code></li>
+    <li>Set up <code>security@fitverse.app</code> as a sender</li>
+  </ul>
+
+  <h3>14.4 &nbsp;In Vercel (or wherever you host)</h3>
+  <ul class="checklist">
+    <li>Add <code>LOGIN_HOOK_SECRET</code> — identical to the Vault value</li>
+    <li>Add <code>ADMIN_ALERT_EMAIL</code></li>
+    <li>Confirm all six existing variables are present in the Production environment</li>
+    <li>Deploy</li>
+  </ul>
+
+  <h3>14.5 &nbsp;Verify in production</h3>
+  <ul class="checklist">
+    <li>Log in with a real test account → email arrives</li>
+    <li>Row exists with <code>email_status = 'sent'</code></li>
+    <li>Log in again from another device → second email, second row</li>
+    <li>Leave the app open past token expiry → <strong>no email</strong></li>
+    <li>Call the endpoint with no secret → <strong>401</strong></li>
+    <li>Check the email does not land in spam — test Gmail, Outlook, and a phone</li>
+  </ul>
+
+  <div class="box tip">
+    <span class="box-label">Tip — an unrelated note about your build config</span>
+    <p>
+      Your production build currently uses <span class="filepath">next.config.mjs</span>,
+      not <span class="filepath">next.config.ts</span>, so the Content Security Policy
+      written in the <code>.ts</code> file is not active.
+    </p>
+    <p style="margin-top:7px">
+      <strong>This does not affect this feature</strong> — CSP governs browsers, and
+      your Resend call is server-side. But if you later fix that config, make sure
+      <code>connect-src</code> still permits your Supabase domain, or the app's own
+      login calls will start failing.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════ 15. TROUBLESHOOTING ═════════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 15</div>
+  <h2 class="sec-title">Troubleshooting</h2>
+
+  <p class="lead">
+    When something does not work, find the symptom below and work through the checks
+    in order. Most problems are one of: a mismatched secret, a missing environment
+    variable, or an unverified domain.
+  </p>
+
+  <h3>Problem 1 — The user never receives the email</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:33%">Possible cause</th><th style="width:33%">What to check</th><th>How to fix it</th></tr></thead>
+    <tbody>
+      <tr><td>The trigger never fired</td><td>Is there a row in <code>login_events</code> at all?</td><td>No row → the problem is in Supabase (trigger or <code>pg_net</code>), not in your route. See Problem&nbsp;4.</td></tr>
+      <tr><td>The route rejected the call</td><td>Your hosting logs — look for 401 responses</td><td>401 → the secret in Vault does not match the one in your environment. Re-copy both.</td></tr>
+      <tr><td>Resend failed</td><td>The <code>email_error</code> column on that row</td><td>Read the message — it usually names the exact problem (unverified domain, bad key, invalid address).</td></tr>
+      <tr><td>The user has no email address</td><td>Is <code>email_status</code> set to <code>skipped</code>?</td><td>Working as designed. Check why the account has no address.</td></tr>
+      <tr><td>It went to spam</td><td>The recipient's spam folder</td><td>See Problem&nbsp;2.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Problem 2 — The email arrives, but goes to spam</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:33%">Possible cause</th><th style="width:33%">What to check</th><th>How to fix it</th></tr></thead>
+    <tbody>
+      <tr><td>Domain not fully verified</td><td>Resend Dashboard → Domains</td><td>Complete every DNS record Resend asks for. DNS changes can take a few hours to propagate.</td></tr>
+      <tr><td>Missing DMARC record</td><td>Look up <code>_dmarc.fitverse.app</code></td><td>Add the DMARC TXT record starting at <code>p=none</code>.</td></tr>
+      <tr><td>Spammy subject line</td><td>Is it ALL CAPS, or full of exclamation marks?</td><td>Use the recommended subject from Section&nbsp;8.1.</td></tr>
+      <tr><td>Brand-new sending address</td><td>How long has <code>security@</code> existed?</td><td>New addresses have no reputation. It improves as real mail is sent and not marked spam.</td></tr>
+      <tr><td>No plain-text version</td><td>Are you sending HTML only?</td><td>Always send both — filters penalise HTML-only mail.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Problem 3 — Resend returns an API error</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:33%">Possible cause</th><th style="width:33%">What to check</th><th>How to fix it</th></tr></thead>
+    <tbody>
+      <tr><td>API key missing in production</td><td>Your hosting environment variables</td><td>Add <code>RESEND_API_KEY</code>. <strong>Remember your code falls back to <code>"re_placeholder"</code> and fails silently</strong>, so a missing key looks like "nothing happened".</td></tr>
+      <tr><td>Sending from an unverified domain</td><td>The <code>from:</code> address in your code</td><td>It must be on a domain verified in Resend.</td></tr>
+      <tr><td>Rate limited</td><td>Are you retrying in a loop?</td><td>Cap retries at three attempts (Section&nbsp;11.2).</td></tr>
+      <tr><td>Invalid recipient address</td><td>The address on the user's account</td><td>Mark the row <code>failed</code> and move on — do not retry a malformed address.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Problem 4 — The webhook/trigger never fires</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:33%">Possible cause</th><th style="width:33%">What to check</th><th>How to fix it</th></tr></thead>
+    <tbody>
+      <tr><td><code>pg_net</code> not enabled</td><td>Database → Extensions</td><td>Enable <code>pg_net</code>. Without it, <code>net.http_post</code> does not exist.</td></tr>
+      <tr><td>Trigger not attached</td><td>Query <code>pg_trigger</code> for <code>auth.sessions</code></td><td>Re-run your <code>CREATE TRIGGER</code> statement.</td></tr>
+      <tr><td>URL points at localhost</td><td>The URL inside the trigger function</td><td>Supabase cannot reach your machine. Use the deployed URL.</td></tr>
+      <tr><td>The exception handler is swallowing a real bug</td><td>Temporarily log inside the function before the handler</td><td>The handler is protecting your users — do not remove it. Log around it instead.</td></tr>
+      <tr><td>No session is being created</td><td>Query <code>auth.sessions</code> directly after logging in</td><td>No new row → the issue is in the app's login code, not this feature.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Problem 5 — Duplicate emails are being sent</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:33%">Possible cause</th><th style="width:33%">What to check</th><th>How to fix it</th></tr></thead>
+    <tbody>
+      <tr><td>The unique constraint is missing</td><td>Inspect the table definition for <code>unique</code> on <code>session_id</code></td><td>Add it. Without it there is no duplicate protection at all.</td></tr>
+      <tr><td>You are sending before inserting</td><td>The order of operations in your route</td><td>Insert first, then send. Section&nbsp;6.3, steps 5–9.</td></tr>
+      <tr><td>The <code>23505</code> check is wrong</td><td>Are you checking <code>error.code</code>?</td><td>Copy the exact check from waitlist route lines 127–131.</td></tr>
+      <tr><td>They are genuinely separate logins</td><td>Do the rows have different <code>session_id</code> values?</td><td>Different IDs = different logins. This is correct behaviour, not a bug.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Problem 6 — Login works but no email, and no errors anywhere</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:33%">Possible cause</th><th style="width:33%">What to check</th><th>How to fix it</th></tr></thead>
+    <tbody>
+      <tr><td>Silent Resend failure</td><td>Is <code>RESEND_API_KEY</code> actually set in production?</td><td>The <code>"re_placeholder"</code> fallback means no crash and no email. This is the most common cause of this exact symptom.</td></tr>
+      <tr><td>Everything is being swallowed</td><td>Does a row exist, and what is its <code>email_status</code>?</td><td>The row tells you how far the process got. Start there, always.</td></tr>
+      <tr><td>The trigger's exception handler hid a failure</td><td>Whether any row was created at all</td><td>No row → the failure is upstream, in Supabase.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="box tip">
+    <span class="box-label">Tip — the universal first question</span>
+    <p>
+      Whenever something is not working, ask: <strong>"Is there a row in
+      <code>login_events</code>, and what does its <code>email_status</code> say?"</strong>
+    </p>
+    <ul style="margin-top:7px;margin-bottom:0">
+      <li><strong>No row</strong> → the problem is in Supabase (trigger, <code>pg_net</code>, or the secret).</li>
+      <li><strong>Row says <code>pending</code></strong> → your route crashed midway.</li>
+      <li><strong>Row says <code>failed</code></strong> → read <code>email_error</code>; it usually names the cause.</li>
+      <li><strong>Row says <code>sent</code></strong> → the problem is deliverability, not code. Go to Problem&nbsp;2.</li>
+    </ul>
+  </div>
+
+  <h3>Problem 7 — Database permission or RLS errors</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:33%">Possible cause</th><th style="width:33%">What to check</th><th>How to fix it</th></tr></thead>
+    <tbody>
+      <tr><td>Using the anon client instead of admin</td><td>Are you calling <code>getSupabaseAdmin()</code>?</td><td>The anon client obeys RLS and cannot write. Use the admin client in the API route.</td></tr>
+      <tr><td>RLS enabled with no policy</td><td>Does the read-own policy exist?</td><td>With RLS on and no policy, users see nothing. Add the policy from Section&nbsp;05.</td></tr>
+      <tr><td>User sees an empty list, expected data</td><td>Does <code>auth.uid()</code> match <code>user_id</code>?</td><td>RLS returns empty results rather than errors — that is by design, so check the IDs match.</td></tr>
+      <tr><td>Foreign key violation on insert</td><td>Does that <code>user_id</code> exist in <code>auth.users</code>?</td><td>Deleted users cannot have new login events. Handle it gracefully.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Problem 8 — Missing environment variable or invalid secret</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:33%">Possible cause</th><th style="width:33%">What to check</th><th>How to fix it</th></tr></thead>
+    <tbody>
+      <tr><td>Every request returns 401</td><td>Compare the Vault value against the hosting value, character by character</td><td>A trailing space or newline when pasting is the usual culprit.</td></tr>
+      <tr><td>Variable added but not applied</td><td>Have you redeployed since adding it?</td><td>Most hosts only pick up new environment variables on the next deployment.</td></tr>
+      <tr><td>Added to Preview but not Production</td><td>Which environment the variable is scoped to</td><td>Add it to Production explicitly.</td></tr>
+      <tr><td><code>IP_HASH_SALT</code> missing</td><td>Is it set in production?</td><td>It silently falls back to a value visible in your source code, which weakens the hashing.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ══════════════════════ 16. FINAL CHECKLIST ═════════════════ -->
+<section class="sec">
+  <div class="sec-eyebrow">Section 16</div>
+  <h2 class="sec-title">Final Implementation Checklist</h2>
+
+  <p class="lead">
+    Follow this in order, top to bottom. Steps 1–31 give you working login
+    notifications. Steps 32–35 make it production-grade.
+  </p>
+
+  <div class="phase-head">Phase 1 &middot; Groundwork</div>
+  <ul class="checklist">
+    <li><span class="num">01</span>Read Sections 1–3 of this guide and understand the architecture</li>
+    <li><span class="num">02</span>Add <code>.env</code> to <span class="filepath">.gitignore</span></li>
+    <li><span class="num">03</span>Confirm <code>IP_HASH_SALT</code> is set to a real value in production</li>
+    <li><span class="num">04</span>Read <span class="filepath">app/api/waitlist/route.ts</span> start to finish</li>
+    <li><span class="num">05</span>Submit the waitlist form — confirm Resend works today</li>
+  </ul>
+
+  <div class="phase-head">Phase 2 &middot; Supabase</div>
+  <ul class="checklist">
+    <li><span class="num">06</span>Check Authentication → Hooks; note whether Password Verification exists</li>
+    <li><span class="num">07</span>Run the <code>information_schema</code> query; note your <code>auth.sessions</code> columns</li>
+    <li><span class="num">08</span>Run the <code>login_events</code> SQL migration</li>
+    <li><span class="num">09</span>Verify RLS is enabled and the read-own policy exists</li>
+    <li><span class="num">10</span>Enable the <code>pg_net</code> extension</li>
+    <li><span class="num">11</span>Generate the shared secret and store it in Vault</li>
+  </ul>
+
+  <div class="phase-head">Phase 3 &middot; Resend</div>
+  <ul class="checklist">
+    <li><span class="num">12</span>Confirm <code>fitverse.app</code> shows Verified</li>
+    <li><span class="num">13</span>Confirm DKIM and SPF; add DMARC starting at <code>p=none</code></li>
+    <li><span class="num">14</span>Set up <code>security@fitverse.app</code> as a sender</li>
+  </ul>
+
+  <div class="phase-head">Phase 4 &middot; Code</div>
+  <ul class="checklist">
+    <li><span class="num">15</span>Add <code>LOGIN_HOOK_SECRET</code> and <code>ADMIN_ALERT_EMAIL</code> to <span class="filepath">.env.local</span></li>
+    <li><span class="num">16</span>Write the login email template (HTML + plain text)</li>
+    <li><span class="num">17</span>Build <span class="filepath">app/api/auth/login-notify/route.ts</span>, following Section 6.3</li>
+    <li><span class="num">18</span>Test it with curl — every row of the Stage 2 table</li>
+    <li><span class="num">19</span>Confirm the duplicate test gives exactly 1 row and 1 email</li>
+  </ul>
+
+  <div class="phase-head">Phase 5 &middot; Deploy</div>
+  <ul class="checklist">
+    <li><span class="num">20</span>Add both new environment variables to Production</li>
+    <li><span class="num">21</span>Deploy</li>
+    <li><span class="num">22</span>Verify the endpoint returns 401 without a secret</li>
+  </ul>
+
+  <div class="phase-head">Phase 6 &middot; Connect the trigger</div>
+  <ul class="checklist">
+    <li><span class="num">23</span>Write the trigger function — <strong>with the exception handler</strong></li>
+    <li><span class="num">24</span>Attach <code>AFTER INSERT</code> on <code>auth.sessions</code></li>
+    <li><span class="num">25</span>Point it at your deployed URL</li>
+  </ul>
+
+  <div class="phase-head">Phase 7 &middot; Verify</div>
+  <ul class="checklist">
+    <li><span class="num">26</span>Real login → email arrives, row says <code>sent</code></li>
+    <li><span class="num">27</span>Wrong password → nothing at all happens</li>
+    <li><span class="num">28</span>App restart → no email</li>
+    <li><span class="num">29</span>Wait past token expiry → <strong>NO email</strong> &nbsp;← the important one</li>
+    <li><span class="num">30</span>Logout → login → second email arrives</li>
+    <li><span class="num">31</span>Break Resend, log in → <strong>login still works</strong> &nbsp;← the critical one</li>
+    <li><span class="num">32</span>Check inbox placement on Gmail, Outlook and mobile</li>
+  </ul>
+
+  <div class="phase-head">Phase 8 &middot; Production-grade</div>
+  <ul class="checklist">
+    <li><span class="num">33</span>Update <span class="filepath">app/privacy/page.tsx</span> to disclose login metadata</li>
+    <li><span class="num">34</span>Add the 90-day retention cleanup job</li>
+    <li><span class="num">35</span>Build the retry job for <code>pending</code>/<code>failed</code> rows</li>
+    <li><span class="num">36</span>Build the daily admin digest (Section 09)</li>
+  </ul>
+
+  <hr>
+
+  <h3>Two things to decide before step 17</h3>
+  <p>Both change what you write, so settle them first:</p>
+  <ol>
+    <li>
+      <strong>Where does this endpoint live?</strong> This repository, or the app's
+      own backend? If the app gets a separate backend later, you will be moving it.
+    </li>
+    <li>
+      <strong>Every login, or only new devices?</strong> This guide is designed for
+      every login. If you want new-device-only, you need a device fingerprint column
+      in <code>login_events</code> — much easier to add now than to retrofit later.
+    </li>
+  </ol>
+
+  <div class="box rec" style="margin-top:22px">
+    <span class="box-label">✓ You are done when</span>
+    <p style="font-size:10.5pt">
+      A real user logs into FitVerse, receives a clear security email within seconds,
+      sees exactly one row in <code>login_events</code> marked <code>sent</code> — and
+      when you deliberately break the email system, <strong>that same user still logs
+      in without noticing anything is wrong.</strong>
+    </p>
+  </div>
+
+</section>
+
+</div>

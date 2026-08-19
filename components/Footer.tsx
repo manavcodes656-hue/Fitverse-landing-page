@@ -59,18 +59,23 @@ export default function Footer() {
   };
 
   const productLinks = [
-    { label: "AI Coach", href: "/features#ai-coach" },
     { label: "Nutrition Tracker", href: "/features#nutrition" },
-    { label: "Workout Log", href: "/features#workout" },
-    { label: "Sleep Monitor", href: "/features#sleep" },
+    { label: "Sleep Tracker", href: "/features#sleep" },
+    { label: "AI Coach", href: "/features#ai-coach" },
     { label: "Community", href: "/features#community" },
+    { label: "Wellness", href: "/features#wellness" },
+    { label: "For Women", href: "/features#for-women" },
+    { label: "Workout", href: "/features#workout" },
   ];
 
-  const companyLinks = [
-    { label: "About", href: "#about" },
-    { label: "Blog", href: "#" },
-    { label: "Careers", href: "#" },
-    { label: "Press", href: "#" },
+  // Blog / Careers / Press have no content behind them yet, so they are rendered
+  // as plain text rather than links that go nowhere.
+  const companyLinks: { label: string; href?: string }[] = [
+    { label: "Platform", href: "/#modules" },
+    { label: "Contact", href: "mailto:hello@fitverse.app" },
+    { label: "Blog (coming soon)" },
+    { label: "Careers (coming soon)" },
+    { label: "Press (coming soon)" },
   ];
 
   const legalLinks = [
@@ -113,7 +118,12 @@ export default function Footer() {
               Be first when we launch.
             </h2>
             <p className="text-[15px] font-light text-center mb-8" style={{ color: "rgba(255,255,255,0.6)" }}>
-              No spam. No noise. Just your invite when we&apos;re ready.
+              Your launch invite and the occasional build update. No spam, no
+              noise, unsubscribe anytime. See our{" "}
+              <Link href="/privacy" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "underline" }}>
+                Privacy Policy
+              </Link>
+              .
             </p>
 
             {formState === "success" ? (
@@ -198,7 +208,7 @@ export default function Footer() {
               <span className="text-[17px] font-semibold tracking-tight text-white">FitVerse</span>
             </div>
             <p className="text-[13px] leading-relaxed max-w-[200px]" style={{ color: "rgba(255,255,255,0.65)" }}>
-              One App. Every Dimension of Fit.
+              An AI fitness system built in India. Currently in pre-launch.
             </p>
 
             {/* Social icons */}
@@ -253,12 +263,18 @@ export default function Footer() {
             <ul className="space-y-3">
               {companyLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-[14px] transition-colors duration-150" style={{ color: "rgba(255,255,255,0.65)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.65)")}
-                  >
-                    {link.label}
-                  </Link>
+                  {link.href ? (
+                    <Link href={link.href} className="text-[14px] transition-colors duration-150" style={{ color: "rgba(255,255,255,0.65)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.65)")}
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <span className="text-[14px]" style={{ color: "rgba(255,255,255,0.65)" }}>
+                      {link.label}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -287,7 +303,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-16 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <p className="text-[13px]" style={{ color: "rgba(255,255,255,0.4)" }}>
-            © 2026 FitVerse · Made in India 🇮🇳
+            © FitVerse · Since 2026 · Made in India 🇮🇳
           </p>
           <div className="flex gap-6">
             <Link href="/privacy" className="text-[13px] transition-colors" style={{ color: "rgba(255,255,255,0.4)" }}

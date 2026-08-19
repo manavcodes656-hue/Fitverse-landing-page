@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 /* ── Pricing Modal ───────────────────────────────────────────────────────── */
-function PricingModal({ onClose }: { onClose: () => void }) {
+function PricingModal({ onClose, onJoinWaitlist }: { onClose: () => void; onJoinWaitlist: () => void }) {
   const plans: {
     label: string; price: string; per: string; billing: string;
     highlight: boolean; badge?: string; features: string[]; cta: string;
@@ -15,20 +15,20 @@ function PricingModal({ onClose }: { onClose: () => void }) {
     {
       label: "Monthly", price: "₹299", per: "/mo", billing: "billed monthly",
       highlight: false,
-      features: ["Core nutrition tracking","Workout log (5,000+ exercises)","Sleep monitor","AI Coach (10 queries/day)","Basic analytics"],
-      cta: "Start Monthly",
+      features: ["Nutrition tracking","Workout library and logging","Sleep tracking","AI Coach (10 queries/day)","Basic analytics"],
+      cta: "Join the waitlist",
     },
     {
-      label: "6 Months", price: "₹199", per: "/mo", billing: "billed ₹1,194 every 6 months",
-      highlight: true, badge: "Most Popular",
-      features: ["Everything in Monthly","Unlimited AI Coach queries","Advanced analytics","Priority email support","Early beta features"],
-      cta: "Start 6-Month Plan",
+      label: "6 Months", price: "₹199", per: "/mo", billing: "billed ₹1,194 every 6 months · save 33%",
+      highlight: true, badge: "Best balance",
+      features: ["Everything in Monthly","Unlimited AI Coach queries","Advanced analytics","Priority email support","Early access to new features"],
+      cta: "Join the waitlist",
     },
     {
-      label: "Yearly", price: "₹149", per: "/mo", billing: "billed ₹1,788/year",
+      label: "Yearly", price: "₹149", per: "/mo", billing: "billed ₹1,788/year · save 50%",
       highlight: false,
-      features: ["Everything in 6 Months","Priority support (24h response)","Early access to new features","Exclusive community access","Annual fitness report"],
-      cta: "Start Yearly Plan",
+      features: ["Everything in 6 Months","Priority support (24h response)","Community access","Annual health report","Locked-in launch pricing"],
+      cta: "Join the waitlist",
     },
   ];
 
@@ -53,7 +53,7 @@ function PricingModal({ onClose }: { onClose: () => void }) {
             <div>
               <p style={{ fontSize:11, fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase", color:"#A39E98", marginBottom:4 }}>Pricing</p>
               <h2 style={{ fontSize:28, fontWeight:700, color:"#1A1512", letterSpacing:"-0.025em" }}>Simple, transparent pricing.</h2>
-              <p style={{ fontSize:14, color:"#A39E98", marginTop:4 }}>Cancel anytime. No hidden fees.</p>
+              <p style={{ fontSize:14, color:"#A39E98", marginTop:4 }}>Cancel anytime. No hidden fees. Nothing is charged before launch.</p>
             </div>
             <button onClick={onClose} className="p-2 rounded-lg transition-colors" style={{ color:"#A39E98" }} aria-label="Close pricing">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -98,6 +98,7 @@ function PricingModal({ onClose }: { onClose: () => void }) {
                 ))}
               </ul>
               <motion.button
+                onClick={onJoinWaitlist}
                 whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
                 style={{
@@ -112,7 +113,7 @@ function PricingModal({ onClose }: { onClose: () => void }) {
           ))}
         </div>
         <p className="text-center pb-6" style={{ fontSize:12, color:"#A39E98" }}>
-          Prices in INR. Billed as stated. 7-day free trial on all plans.
+          Prices in INR. 7-day free trial on all plans. FitVerse is pre-launch — billing begins only once the app is live, and waitlist members get launch pricing first.
         </p>
       </motion.div>
     </motion.div>
@@ -253,7 +254,7 @@ export default function Navbar() {
           {/* Center links */}
           <div className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2 gap-[40px]">
             <button onClick={scrollToModules} className={`nav-link ${isAboutActive ? "nav-link-active" : ""}`}
-              style={scrolled ? { color: "#6B6560" } : {}}>About</button>
+              style={scrolled ? { color: "#6B6560" } : {}}>Platform</button>
             <Link href="/features" className={`nav-link ${isFeaturesActive ? "nav-link-active" : ""}`}
               style={scrolled ? { color: "#6B6560" } : {}}>Features</Link>
             <button onClick={() => setPricingOpen(true)} className="nav-link"
@@ -338,7 +339,7 @@ export default function Navbar() {
             <div className="px-6 py-8 flex flex-col gap-6">
               <button onClick={scrollToModules}
                 className="text-left text-[18px] font-medium transition-colors"
-                style={{ color:"#6B6560" }}>About</button>
+                style={{ color:"#6B6560" }}>Platform</button>
               <Link href="/features" onClick={() => setMobileOpen(false)}
                 className="text-[18px] font-medium transition-colors"
                 style={{ color:"#6B6560" }}>Features</Link>
@@ -361,7 +362,12 @@ export default function Navbar() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {pricingOpen && <PricingModal onClose={() => setPricingOpen(false)} />}
+        {pricingOpen && (
+          <PricingModal
+            onClose={() => setPricingOpen(false)}
+            onJoinWaitlist={() => { setPricingOpen(false); scrollToWaitlist(); }}
+          />
+        )}
       </AnimatePresence>
     </>
   );

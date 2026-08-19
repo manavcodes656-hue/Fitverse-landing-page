@@ -3,20 +3,31 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
-const modules = [
+/* `image: null` means no real screenshot exists yet — see AUDIT.md. */
+const modules: {
+  id: string;
+  number: string;
+  name: string;
+  tagline: string;
+  description: string;
+  image: string | null;
+  imageAlt: string;
+  bg: string;
+  features: string[];
+}[] = [
   {
     id: "ai-coach",
     number: "01",
     name: "AI Coach",
-    tagline: "Your personal trainer. Always on.",
+    tagline: "Your coach, always on.",
     description:
-      "Reads your nutrition, sleep, and workouts together. Adapts your plan in real time.",
+      "Structured by your health analysis, a personalized trainer — always there for you to make your well-being better.",
     image: "/aicoach.png",
     imageAlt: "FitVerse AI Coach personalized guidance",
     bg: "bg-white",
     features: [
       "Real-time plan adaptation based on your data",
-      "Cross-module insights. Sleep affects workout recommendations.",
+      "Cross-module insights — sleep shapes workout recommendations",
       "Weekly check-ins with actionable adjustments",
       "Overtraining detection and recovery alerts",
       "Personalized goal setting and milestone tracking",
@@ -26,14 +37,14 @@ const modules = [
     id: "nutrition",
     number: "02",
     name: "Nutrition Tracker",
-    tagline: "Every meal. Tracked precisely.",
+    tagline: "Every meal, in context.",
     description:
-      "14M+ foods including Indian meals. Calories, macros, and micronutrients. Automatic.",
+      "A structured nutrition system for tracking intake, understanding balance, and staying aligned with your goals.",
     image: "/nutrition tracker.png",
     imageAlt: "FitVerse nutrition tracking and meal scanning",
     bg: "bg-[#F5F0E8]",
     features: [
-      "14M+ food database with Indian regional cuisine",
+      "Indian regional cuisine alongside global foods",
       "Barcode scanner for packaged foods",
       "Automatic macro and micronutrient breakdown",
       "Custom meal and recipe builder",
@@ -43,15 +54,15 @@ const modules = [
   {
     id: "workout",
     number: "03",
-    name: "Workout Log",
-    tagline: "Log it. Own it. Beat it.",
+    name: "Workout",
+    tagline: "Show up. Log it. Repeat.",
     description:
-      "5,000+ exercises. Track sets, reps, weight. Watch your strength curve climb.",
+      "Library made for your everyday sessions. Turn your busy workouts and measure your progress.",
     image: "/workout log.png",
     imageAlt: "FitVerse workout tracking and progress",
     bg: "bg-white",
     features: [
-      "5,000+ exercises with video demonstrations",
+      "Exercise library with video demonstrations",
       "Set, rep, and weight tracking with history",
       "Progressive overload suggestions",
       "Custom workout plan builder",
@@ -61,10 +72,10 @@ const modules = [
   {
     id: "sleep",
     number: "04",
-    name: "Sleep Monitor",
+    name: "Sleep Tracker",
     tagline: "Recovery is training too.",
     description:
-      "Analyze sleep stages, quality scores, and how your sleep affects your performance.",
+      "Translates sleep data into measurable insights for improved rest and recovery.",
     image: "/sleep monitor.png",
     imageAlt: "FitVerse sleep monitoring and recovery",
     bg: "bg-[#F5F0E8]",
@@ -80,19 +91,34 @@ const modules = [
     id: "community",
     number: "05",
     name: "Community",
-    tagline: "Train together. Grow together.",
+    tagline: "Nobody trains alone.",
     description:
-      "Connect with people on the same journey. Share progress, join challenges, stay accountable.",
-    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80",
-    imageAlt: "FitVerse community challenges and social fitness",
+      "Connect, learn and stay accountable with a community that understands your journey.",
+    // TODO (assets): needs a real Community screenshot. The stock photo that
+    // previously sat here was removed — it was not the product.
+    image: null,
+    imageAlt: "FitVerse community and shared accountability",
     bg: "bg-white",
     features: [
       "Public and private fitness challenges",
       "Progress sharing with your network",
       "Accountability partner matching",
       "Community leaderboards and streaks",
-      "Expert-led group programs",
     ],
+  },
+  {
+    id: "wellness",
+    number: "06",
+    name: "Wellness",
+    tagline: "Space to reset.",
+    description:
+      "Create a space for calm, focus and meaningful insights.",
+    // TODO (assets): needs a real Wellness screenshot.
+    image: null,
+    imageAlt: "FitVerse wellness, calm and focus",
+    bg: "bg-[#F5F0E8]",
+    // TODO (content): feature list pending product confirmation.
+    features: [],
   },
 ];
 
@@ -172,19 +198,21 @@ function FeatureSection({ mod, index }: { mod: (typeof modules)[0]; index: numbe
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="overflow-hidden rounded-2xl" style={{ aspectRatio: "4/3", background: "#E8E3DC" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={mod.image}
-                alt={mod.imageAlt}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  objectPosition: "center center",
-                  display: "block",
-                }}
-                loading="lazy"
-              />
+              {mod.image && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={mod.image}
+                  alt={mod.imageAlt}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center center",
+                    display: "block",
+                  }}
+                  loading="lazy"
+                />
+              )}
             </div>
           </motion.div>
         </div>
@@ -216,13 +244,14 @@ export default function FeaturesContent() {
               className="text-[#111827] font-bold mb-5"
               style={{ fontSize: "clamp(36px, 6vw, 64px)", letterSpacing: "-0.03em", lineHeight: 1.05 }}
             >
-              Five modules.
+              Seven modules.
               <br />
               One system.
             </h1>
             <p className="text-[#6B7280]" style={{ fontSize: "clamp(16px, 2vw, 18px)", lineHeight: 1.7 }}>
-              Every dimension of your fitness, connected and intelligent. FitVerse
-              doesn&apos;t just track. It understands.
+              Nutrition, sleep, coaching, community, wellness, cycle tracking and
+              training — built as one connected system rather than seven separate
+              apps. Each module reads the others, so your plan reflects all of you.
             </p>
           </motion.div>
         </div>

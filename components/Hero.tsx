@@ -87,7 +87,7 @@ export default function Hero() {
             FitVerse
           </h1>
 
-          {/* Tagline */}
+          {/* Supporting copy */}
           <p
             style={{
               fontSize: "clamp(17px, 2.2vw, 22px)",
@@ -99,9 +99,8 @@ export default function Hero() {
               maxWidth: "520px",
             }}
           >
-            Your nutrition. Your workouts. Your sleep.{" "}
+            One system for the way you live, train, eat and recover.{" "}
             <em style={{ fontStyle: "normal", color: "rgba(255,255,255,0.55)" }}>
-              One system.
             </em>
           </p>
 

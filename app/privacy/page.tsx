@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalLayout title="Privacy Policy" lastUpdated="January 1, 2025">
+    <LegalLayout title="Privacy Policy" lastUpdated="August 16, 2026">
       <p>
         FitVerse (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform, website, and mobile application (collectively, the &quot;Service&quot;).
       </p>

@@ -17,32 +17,41 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'FitVerse AI Fitness App for Nutrition Workouts Sleep',
-  description: 'FitVerse is the all in one AI fitness platform that tracks your nutrition plans your workouts monitors your sleep and coaches you unified in one app',
+  metadataBase: new URL('https://fitverse.app'),
+  title: 'FitVerse — AI Fitness App for Nutrition, Workouts & Sleep',
+  description:
+    'FitVerse is the all-in-one AI fitness app that plans your nutrition, tracks your workouts, monitors your sleep, and coaches you daily. Join the waitlist.',
   keywords: [
     'AI fitness app', 'nutrition tracker', 'workout logger',
     'sleep monitor app', 'personal AI coach', 'calorie counter',
     'fitness tracking app India', 'unified fitness platform',
-    'BMI calculator app', 'macro tracker'
+    'menstrual cycle tracker', 'macro tracker'
   ],
   alternates: {
-    canonical: 'https://fitverse.app',
+    canonical: '/',
   },
   robots: {
     index: true,
     follow: true,
   },
   openGraph: {
-    title: 'FitVerse One App Every Dimension of Fit',
-    description: 'Track nutrition log workouts analyze sleep and get AI coaching all in one intelligent fitness system',
+    title: 'FitVerse — One app. Every dimension of fit.',
+    description:
+      'Nutrition, training, sleep and recovery, read together rather than tracked separately. An AI fitness system built in India, launching soon.',
     type: 'website',
-    url: 'https://fitverse.app',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630 }]
+    url: '/',
+    siteName: 'FitVerse',
+    locale: 'en_IN',
+    // NOTE: /public/og-image.jpg does not exist yet — must be created at
+    // 1200×630 before launch, or every social share renders blank.
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'FitVerse — one app for nutrition, training, sleep and recovery' }]
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FitVerse AI Fitness Platform',
-    description: 'One app for nutrition workouts sleep and AI coaching'
+    title: 'FitVerse — One app. Every dimension of fit.',
+    description:
+      'Nutrition, training, sleep and recovery, read together rather than tracked separately. Launching soon.',
+    images: ['/og-image.jpg']
   }
 };
 
@@ -58,10 +67,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${playfair.variable} scroll-smooth`}>
+    <html lang="en-IN" className={`${outfit.variable} ${playfair.variable} scroll-smooth`}>
       <head>
-        <link rel="canonical" href="https://fitverse.app" />
-        <meta name="robots" content="index, follow" />
+        {/* Canonical and robots are emitted by the Metadata API above — do not
+            duplicate them here. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -69,13 +78,36 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "MobileApplication",
               "name": "FitVerse",
-              "description": "AI powered unified fitness platform",
+              "description": "An AI fitness app that reads nutrition, training, sleep and recovery together. Currently in pre-launch.",
               "applicationCategory": "HealthApplication",
               "operatingSystem": "iOS, Android",
+              "url": "https://fitverse.app",
               "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "INR"
+                "@type": "AggregateOffer",
+                "lowPrice": "149",
+                "highPrice": "299",
+                "priceCurrency": "INR",
+                "offerCount": "3",
+                "availability": "https://schema.org/PreOrder"
+              }
+            })
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "FitVerse",
+              "url": "https://fitverse.app",
+              "logo": "https://fitverse.app/logo.jpeg",
+              "description": "An AI fitness system built in India, unifying nutrition, training, sleep and recovery in one app.",
+              "email": "hello@fitverse.app",
+              "foundingDate": "2026",
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "IN"
               }
             })
           }}

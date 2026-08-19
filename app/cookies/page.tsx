@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
   return (
-    <LegalLayout title="Cookie Policy" lastUpdated="January 1, 2025">
+    <LegalLayout title="Cookie Policy" lastUpdated="August 16, 2026">
       <p>
         This Cookie Policy explains how FitVerse (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) uses cookies and similar tracking technologies when you visit our website or use our platform. By using the Service, you consent to the use of cookies as described in this policy.
       </p>

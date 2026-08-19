@@ -5,40 +5,34 @@ import { motion, AnimatePresence, useInView } from "framer-motion";
 
 const faqs = [
   {
-    tag: "App",
-    question: "Is FitVerse free to download?",
+    question: "What is FitVerse, exactly?",
     answer:
-      "Yes. FitVerse is free to download on iOS and Android. Core features — nutrition tracking, workout logging, sleep monitoring, and AI coaching — are available on the free plan. Pro unlocks advanced analytics and unlimited AI queries.",
+      "One app covering seven connected areas of your health: nutrition, sleep, AI coaching, community, wellness, cycle tracking, and workouts. The point isn't that each one exists — plenty of apps do one well. The point is that they read each other, so a bad week of sleep actually changes what your plan asks of you.",
   },
   {
-    tag: "App",
     question: "When does FitVerse launch?",
     answer:
-      "Join the waitlist now and you'll be among the first to get access the moment we go live.",
+      "We haven't announced a public date yet. We're in pre-launch and building toward it. Join the waitlist and you'll hear it from us before it goes anywhere else — including the launch date itself, as soon as we can commit to one.",
   },
   {
-    tag: "AI",
-    question: "How does the AI coach actually work?",
+    question: "Is FitVerse free?",
     answer:
-      "Your AI coach reads across everything — what you ate, how you slept, what you lifted — and connects the dots. It doesn't give generic advice. It sees your full picture and responds to it in real time, every single day.",
+      "No, and we'd rather be straight about it than surprise you later. FitVerse is a paid subscription starting at ₹149/month on the annual plan, with monthly and 6-month options available. Every plan opens with a 7-day free trial, so you can decide after using it rather than before.",
   },
   {
-    tag: "AI",
-    question: "Does the AI replace a real personal trainer?",
+    question: "How does the AI coach work?",
     answer:
-      "It's not a replacement — it's an upgrade. A human trainer sees you once or twice a week. Your FitVerse AI coach monitors your data 24/7, adjusts your plan when your sleep drops, flags when you're overtraining, and keeps your nutrition aligned with your goals every single day.",
+      "It reads across your logged data rather than at one slice of it — what you ate, how you slept, what you trained — and adjusts your plan as those inputs move. It's designed to notice patterns across areas that separate apps can't see, because they only ever hold one piece.",
   },
   {
-    tag: "Data",
-    question: "Is my health data safe with FitVerse?",
+    question: "How is my health data protected?",
     answer:
-      "Completely. Your data is encrypted in transit and at rest. We use row-level security on our database — meaning only you can access your own records. We never sell, share, or monetize your personal health data. Ever.",
+      "Your data is encrypted in transit and at rest, and our database uses row-level security so records are scoped to you. We don't sell, share or monetise personal health data. No system is completely secure — anyone claiming otherwise is overselling — but security is treated as a core requirement, not a feature. Full detail is in our Privacy Policy.",
   },
   {
-    tag: "Goal",
-    question: "Will FitVerse guarantee I hit my fitness goals?",
+    question: "Will it be on iOS and Android?",
     answer:
-      "Yes. If you follow your personalized plan consistently, FitVerse will get you there. Every recommendation — your calories, your workouts, your sleep targets — is calculated specifically for your body, your goal, and your lifestyle. The system is designed for one outcome: your results.",
+      "Both are planned for launch. Neither is published yet, which is why the store badges on this site are marked coming soon rather than linking anywhere. Waitlist members get the download links first.",
   },
 ];
 
@@ -253,7 +247,8 @@ export default function FAQ() {
               margin: "0 auto",
             }}
           >
-            Everything you want to know about FitVerse.
+            What FitVerse does, what it costs, and what we can and cannot
+            promise before launch.
           </p>
         </motion.div>
 

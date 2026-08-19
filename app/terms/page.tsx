@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalLayout title="Terms of Service" lastUpdated="January 1, 2025">
+    <LegalLayout title="Terms of Service" lastUpdated="August 16, 2026">
       <p>
         Welcome to FitVerse. By accessing or using our platform, website, or mobile application (the &quot;Service&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;). Please read them carefully.
       </p>

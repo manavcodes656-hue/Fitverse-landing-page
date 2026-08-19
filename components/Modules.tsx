@@ -3,13 +3,23 @@
 import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-const panels = [
+const panels: {
+  number: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  image: string | null;
+  imageAlt: string;
+  imageRight: boolean;
+  bg: string;
+  priority: boolean;
+}[] = [
   {
     number: "01",
     name: "AI Coach",
-    subtitle: "Your personal trainer. Always on.",
+    subtitle: "Your coach, always on.",
     description:
-      "Reads your nutrition, sleep, and workouts together. Adapts your plan in real time based on your progress.",
+      "Structured by your health analysis, a personalized trainer — always there for you to make your well-being better.",
     image: "/aicoach.png",
     imageAlt: "FitVerse AI Coach personalized guidance",
     imageRight: true,
@@ -19,9 +29,9 @@ const panels = [
   {
     number: "02",
     name: "Nutrition Tracker",
-    subtitle: "Every meal. Tracked precisely.",
+    subtitle: "Every meal, in context.",
     description:
-      "14M+ foods including Indian meals. Calories, macros, and micronutrients. Automatic.",
+      "A structured nutrition system for tracking intake, understanding balance, and staying aligned with your goals.",
     image: "/nutrition tracker.png",
     imageAlt: "FitVerse nutrition tracking and meal scanning",
     imageRight: false,
@@ -30,10 +40,10 @@ const panels = [
   },
   {
     number: "03",
-    name: "Workout Log",
-    subtitle: "Log it. Own it. Beat it.",
+    name: "Workout",
+    subtitle: "Show up. Log it. Repeat.",
     description:
-      "5,000+ exercises. Track sets, reps, weight. Watch your strength curve climb week over week.",
+      "Library made for your everyday sessions. Turn your busy workouts and measure your progress.",
     image: "/workout log.png",
     imageAlt: "FitVerse workout tracking and progress",
     imageRight: true,
@@ -42,10 +52,10 @@ const panels = [
   },
   {
     number: "04",
-    name: "Sleep Monitor",
+    name: "Sleep Tracker",
     subtitle: "Recovery is training too.",
     description:
-      "Analyze sleep stages, quality scores, and how your sleep directly affects your performance.",
+      "Translates sleep data into measurable insights for improved rest and recovery.",
     image: "/sleep monitor.png",
     imageAlt: "FitVerse sleep monitoring and recovery",
     imageRight: false,
@@ -54,6 +64,8 @@ const panels = [
   },
 ];
 
+const totalPanels = panels.length;
+
 export default function Modules() {
   const scrollSection = useRef<HTMLDivElement>(null);
   const innerRef      = useRef<HTMLDivElement>(null);
@@ -61,8 +73,6 @@ export default function Modules() {
   const targetXRef    = useRef(0);
   const rafRef        = useRef<number>(0);
   const [activePanel, setActivePanel] = useState(0);
-
-  const totalPanels = 4;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -147,7 +157,8 @@ export default function Modules() {
                           marginBottom: "12px",
                         }}
                       >
-                        {panel.name}                      </h2>
+                        {panel.name}
+                      </h2>
                       <p style={{ fontSize: "18px", fontWeight: 600, color: "#111111", lineHeight: 1.4, marginBottom: "16px" }}>
                         {panel.subtitle}
                       </p>
@@ -164,19 +175,21 @@ export default function Modules() {
                         animate={isActive ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.97 }}
                         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={panel.image}
-                          alt={panel.imageAlt}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            objectPosition: "center center",
-                            display: "block",
-                          }}
-                          loading={panel.priority ? "eager" : "lazy"}
-                        />
+                        {panel.image && (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={panel.image}
+                            alt={panel.imageAlt}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              objectPosition: "center center",
+                              display: "block",
+                            }}
+                            loading={panel.priority ? "eager" : "lazy"}
+                          />
+                        )}
                       </motion.div>
                     </div>
                   </article>

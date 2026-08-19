@@ -119,6 +119,7 @@ export default function ComparisonSlider() {
 
   return (
     <section
+      aria-label="The problem FitVerse solves"
       style={{
         backgroundColor: "#0F0D0A",
         /* Fit entirely within viewport height */
@@ -206,7 +207,7 @@ export default function ComparisonSlider() {
             fontWeight: 700, color: "#fff",
             lineHeight: 1.35, margin: 0,
           }}>
-            Juggling 5 apps for<br />one fitness goal?
+            Five apps. Five<br />disconnected stories.
           </h3>
           <p style={{
             fontFamily: "Inter,sans-serif",
@@ -214,7 +215,7 @@ export default function ComparisonSlider() {
             fontWeight: 400, color: "rgba(255,255,255,0.4)",
             lineHeight: 1.6, marginTop: "10px", marginBottom: 0,
           }}>
-            Switching between apps means<br />losing context and missing patterns.
+            Your food log never sees your sleep score.<br />Nothing connects, so nothing adapts.
           </p>
         </motion.div>
 
@@ -260,7 +261,7 @@ export default function ComparisonSlider() {
               position: "absolute", inset: 0, zIndex: 1,
               background: "rgba(12,12,18,0.97)",
             }}>
-              {APPS.map((app, i) => {
+              {APPS.map((app) => {
                 const origTopPct  = parseFloat(app.top);
                 const origLeftPct = parseFloat(app.left);
                 const targetTopPct  = 40;
@@ -482,7 +483,7 @@ export default function ComparisonSlider() {
             fontWeight: 700, color: "#fff",
             lineHeight: 1.35, margin: 0,
           }}>
-            One intelligent platform<br />for everything.
+            One system that<br />reads all of it.
           </h3>
           <p style={{
             fontFamily: "Inter,sans-serif",
@@ -490,7 +491,7 @@ export default function ComparisonSlider() {
             fontWeight: 400, color: "rgba(255,255,255,0.4)",
             lineHeight: 1.6, marginTop: "10px", marginBottom: 0,
           }}>
-            FitVerse unifies your entire fitness<br />journey into a single adaptive system.
+            Nutrition, training, sleep and recovery<br />held together, so your plan reflects all of it.
           </p>
         </motion.div>
       </div>
