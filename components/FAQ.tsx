@@ -6,29 +6,29 @@ import { springSnappy, springRotate, reveal } from "@/lib/motion";
 
 const faqs = [
   {
-    question: "What is FitVerse?",
+    question: "What is FitVerse exactly?",
     answer:
-      "FitVerse is one app for the whole picture of your health: nutrition, workouts, sleep, AI coaching, wellness, community, and cycle tracking. Instead of seven separate trackers that each know one thing about you, it's a single system where every part informs the others.",
+      "FitVerse is one connected health platform that brings together workouts, nutrition, sleep, recovery, AI coaching, wellness, community, and cycle tracking — instead of juggling five different apps for five different parts of your health, everything lives in one place and actually talks to each other.",
   },
   {
-    question: "How is it different from using separate fitness apps?",
+    question: "When does FitVerse launch?",
     answer:
-      "Separate apps each hold one piece and never talk to each other, so a rough week of sleep never changes what your training app asks of you the next morning. FitVerse reads them together, and that connection is the whole product, not a feature bolted on the side.",
+      "We're currently in pre-launch. Join the waitlist to get notified the moment we go live, plus early access ahead of the general public.",
   },
   {
-    question: "Who is FitVerse for, and do I need any experience?",
+    question: "Is FitVerse free?",
     answer:
-      "FitVerse is for anyone building a routine around a real life, from students and working professionals to complete beginners and people already deep into training. You don't need a gym, equipment or any experience to start. Log what you already eat, how you sleep and how you move, and let the coaching build from there.",
+      "FitVerse will offer a free tier to get started, with a premium plan for those who want the full experience. We're finalizing pricing details and will share them soon. Waitlist members will be the first to know.",
   },
   {
-    question: "Can I track my menstrual cycle in FitVerse?",
+    question: "How does the AI Coach work?",
     answer:
-      "Yes. Cycle tracking is built in as one of FitVerse's seven modules, not another separate app to keep alongside this one. It sits with your nutrition, sleep and training, so your plan reflects all of you rather than a version with a piece missing.",
+      "The AI Coach looks at your full picture of your sleep, your workouts, your nutrition, your recovery and gives you guidance based on how your week is actually going, not a generic template. It adjusts as your data changes, so the advice stays relevant to you specifically.",
   },
   {
-    question: "Is my health data private and secure?",
+    question: "Will it be on iOS or Android?",
     answer:
-      "Yes. Everything is encrypted in transit and at rest, every record is scoped to your account alone, and we never sell your data or use your health information for advertising. You can request deletion at any time, and full detail is in our Privacy Policy.",
+      "Yes, FitVerse is being built for both iOS and Android. Both will be available at launch.",
   },
 ];
 

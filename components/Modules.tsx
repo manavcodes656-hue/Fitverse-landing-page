@@ -28,8 +28,8 @@ const panels: {
     subtitle: "Your coach, always on.",
     description:
       "Structured by your health analysis, a personalized trainer — always there for you to make your well-being better.",
-    image: null,
-    imageAlt: "FitVerse AI Coach personalized guidance",
+    image: "/module-ai-coach.png",
+    imageAlt: "Training at home with the FitVerse AI Coach open on a phone",
     imageRight: true,
     bg: "#FDFCF9",
     priority: true,
@@ -40,8 +40,8 @@ const panels: {
     subtitle: "Every meal, in context.",
     description:
       "A structured nutrition system for tracking intake, understanding balance, and staying aligned with your goals.",
-    image: null,
-    imageAlt: "FitVerse nutrition tracking and meal scanning",
+    image: "/module-nutrition.png",
+    imageAlt: "Logging a meal in FitVerse while preparing fresh food",
     imageRight: false,
     bg: "#F5F0E8",
     priority: false,
@@ -52,8 +52,8 @@ const panels: {
     subtitle: "Show up. Log it. Repeat.",
     description:
       "Library made for your everyday sessions. Turn your busy workouts and measure your progress.",
-    image: null,
-    imageAlt: "FitVerse workout tracking and progress",
+    image: "/module-workout.png",
+    imageAlt: "Lifting in the gym with a FitVerse workout logged on a phone",
     imageRight: true,
     bg: "#FDFCF9",
     priority: false,
@@ -64,8 +64,8 @@ const panels: {
     subtitle: "Recovery is training too.",
     description:
       "Translates sleep data into measurable insights for improved rest and recovery.",
-    image: null,
-    imageAlt: "FitVerse sleep monitoring and recovery",
+    image: "/module-sleep.png",
+    imageAlt: "Sleeping with FitVerse tracking the night from the bedside",
     imageRight: false,
     bg: "#F5F0E8",
     priority: false,
@@ -78,10 +78,8 @@ const panels: {
        present: the community side and cycle tracking as a named feature. */
     description:
       "Train alongside people chasing the same goals, and meditate for a calmer way to stay connected with your well-being.",
-    /* No artwork yet. The card still reserves its image space and renders a
-       labelled placeholder — drop a path in here and it takes over. */
-    image: null,
-    imageAlt: "FitVerse Wellness and Community",
+    image: "/module-wellness-community.png",
+    imageAlt: "A guided FitVerse session running on a phone beside a yoga mat",
     imageRight: true,
     bg: "#FDFCF9",
     priority: false,
@@ -160,7 +158,7 @@ export default function Modules() {
               >
                 <div className="w-full max-w-7xl mx-auto px-8 lg:px-16">
                   <article
-                    className={`grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center ${
+                    className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 items-center ${
                       !panel.imageRight
                         ? "lg:[&>*:first-child]:order-2 lg:[&>*:last-child]:order-1"
                         : ""
@@ -228,12 +226,19 @@ export default function Modules() {
                         shadow, so it reads as a framed object on the panel
                         instead of a rectangle cropped out of it.
 
-                        No slide carries a photo right now — every `image` is
-                        null, so all five render the empty frame. Dropping a
-                        path into `image` on any panel fills that one frame
-                        and needs no layout change. */}
+                        The frame is 5:4. The photos are 3:2 (1.50), one 1.83
+                        and one 1.12, so `cover` is right — `contain` would
+                        letterbox inside a frame that is meant to be filled.
+                        Cover trims 8% per side on the 3:2 shots; the 1.83
+                        AI Coach frame loses more, so it is nudged off centre
+                        to keep the phone and the person in view. */}
+                    {/* Width is height-capped on mobile: this plate stacks
+                        under the text inside a 100svh pinned frame, so a
+                        width-derived size is exactly what clips on a short
+                        phone. 50svh wide at 5:4 is 40svh tall, which leaves
+                        room for the text above it. */}
                     <motion.div
-                      className="relative"
+                      className="relative w-[min(100%,50svh)] mx-auto lg:w-full lg:mx-0"
                       style={{
                         borderRadius: 26,
                         padding: "clamp(13px, 1.5vw, 22px)",

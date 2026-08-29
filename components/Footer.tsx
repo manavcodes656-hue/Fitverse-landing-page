@@ -82,7 +82,7 @@ export default function Footer() {
   ];
 
   const companyLinks: { label: string; href?: string }[] = [
-    { label: "About", href: "/#modules" },
+    { label: "About", href: "/" },
     { label: "Contact", href: "mailto:hello@fitverse.app" },
     { label: "Blog (coming soon)" },
     { label: "Careers (coming soon)" },
@@ -99,7 +99,7 @@ export default function Footer() {
      A 14px-radius input against a capsule button reads as two unrelated parts
      of one control. */
   const inputClass =
-    "w-[220px] h-[52px] rounded-full px-6 text-[15px] font-normal text-white " +
+    "w-full sm:w-[220px] h-[52px] rounded-full px-6 text-[15px] font-normal text-white " +
     "bg-white/[0.07] border border-white/20 placeholder-white/45 " +
     "focus:border-white/60 focus:bg-white/[0.11] focus:outline-none " +
     "disabled:opacity-50 transition-all duration-200";

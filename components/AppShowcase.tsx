@@ -291,7 +291,30 @@ function FanCard({
     return [s(a[3]), s(a[3]), s(a[2]), s(a[1]), a[0], a[1], a[2], a[3], a[3]];
   };
 
+  /* ── Baseline ────────────────────────────────────────────────────────────
+     Cards scale about their own centres, so a receded card loses height off
+     BOTH ends: at rank 2 its top sits ~100px below the centre card's top and
+     its base ~100px above the centre card's base. Measured, the centres are
+     pixel-identical — the geometry is exact — but with no common ground line
+     the phones read as floating at different heights rather than standing
+     level. Each rank is therefore pushed down by half the height it lost,
+     which lands every phone's base on one line.
+
+     The shrink factor is NOT the naive centre-depth projection p/(p−z). A
+     card is also turned on rotateY, so its near edge projects taller than its
+     far edge and the box takes the near edge — measured, a rank-1 card renders
+     at 0.883 of full height where centre-depth predicts 0.839. sqrt(pf) tracks
+     the measured heights to within a few px across all ranks; the residual
+     base spread is 4px on a 568px card. Verified by measuring the live DOM,
+     not derived — if the fan geometry changes, re-measure. */
+  const cardH = cardW * (19.5 / 9);
+  const yRanks = FAN.scale.map((s, r) => {
+    const pf = t.perspective / (t.perspective - FAN.z[r] * t.zMul);
+    return (cardH * (1 - s * Math.sqrt(pf))) / 2;
+  });
+
   const x = useTransform(rel, stops, mirror(FAN.x, true).map((v) => v * cardW * t.xMul));
+  const y = useTransform(rel, stops, mirror(yRanks));
   const z = useTransform(rel, stops, mirror(FAN.z).map((v) => v * t.zMul));
   const rotateY = useTransform(rel, stops, mirror(FAN.rotate, true));
   const scale = useTransform(rel, stops, mirror(FAN.scale));
@@ -314,7 +337,7 @@ function FanCard({
         margin: "auto",
         width: "max-content",
         height: "max-content",
-        x, z, rotateY, scale, opacity,
+        x, y, z, rotateY, scale, opacity,
         transformStyle: "preserve-3d",
         willChange: "transform, opacity",
         pointerEvents: reachable ? "auto" : "none",

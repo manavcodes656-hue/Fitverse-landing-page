@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import {
   motion,
   AnimatePresence,
@@ -13,50 +13,140 @@ import {
 
 /* ═══════════════════════════════════════════════════════════════════════════
    INTRO ANIMATION
-   Seven drifting modules gather, collapse into one, and resolve as FitVerse.
+   Eight drifting modules gather, collapse into one, and resolve as FitVerse.
    Whole sequence, first frame to homepage revealed: 5.00s.
 
-   ── SWAPPING IN REAL ASSETS ─────────────────────────────────────────────────
-   Everything visual is in INTRO_ICONS below. Set `icon` to any JSX node
-   (<Image />, inline <svg>, anything) and the placeholder shape is ignored —
-   it is rendered inside a box of size GLYPH, so a 1:1 asset needs no wrapper.
+   ── THE VISUAL LANGUAGE ─────────────────────────────────────────────────────
+   Each module is a dark-glass tile — near-black with a faint wash of its
+   hue — carrying a custom thin-stroke glyph glowing inside. The tiles sit
+   SETTLED at their stations (±3px of slow breath, nothing loose), then on
+   the merge they close like an iris: glide onto a perfect ring, turn 40° as
+   one body while the ring contracts, and resolve into the FitVerse mark.
+
+   Hues are the same per-module accents the Features section uses, so the
+   intro and the features read as one system.
+
    `x`/`y` are the resting offsets in units of the responsive spread radius,
-   so the scatter stays proportional on every screen size. Animation logic
-   never reads anything else from this array.
+   so the scatter stays proportional on every screen size.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export type IntroIcon = {
   id: string;
   label: string;
-  tint: string;
-  ink: string;
+  /** The module's light. Tile tint, stroke and glow all derive from it. */
+  hue: string;
   /** Resting offset from centre, in multiples of the spread radius (-1…1). */
   x: number;
   y: number;
   /** Drift speed multiplier — small variations stop them moving as one body. */
   drift: number;
-  /** Real asset goes here. */
-  icon?: React.ReactNode;
+  /** Assigned slot on the convergence ring, in degrees (screen coords,
+      -90 = top). Each icon takes the slot nearest its resting angle, so the
+      glide onto the ring never crosses another icon's path. */
+  ring: number;
 };
 
 export const INTRO_ICONS: IntroIcon[] = [
-  { id: "workouts",     label: "Workouts",     tint: "#1E1B4B", ink: "#A5B4FC", x: -0.82, y: -0.46, drift: 1.00 },
-  { id: "nutrition",    label: "Nutrition",    tint: "#064E3B", ink: "#6EE7B7", x:  0.74, y: -0.62, drift: 1.24 },
-  { id: "sleep",        label: "Sleep",        tint: "#2E1065", ink: "#C4B5FD", x:  0.96, y:  0.28, drift: 0.86 },
-  { id: "activity",     label: "Activity",     tint: "#5C1520", ink: "#E8A0AE", x:  0.34, y:  0.78, drift: 1.12 },
-  { id: "community",    label: "Community",    tint: "#0C4A6E", ink: "#7DD3FC", x: -0.52, y:  0.72, drift: 0.94 },
-  { id: "gamification", label: "Gamification", tint: "#8C2F3D", ink: "#F2B8C4", x: -1.02, y:  0.16, drift: 1.32 },
-  { id: "ai-coach",     label: "AI Coach",     tint: "#3B0764", ink: "#E9D5FF", x:  0.10, y: -0.94, drift: 0.78 },
+  { id: "ai-coach",  label: "AI Coaching",    hue: "#D9702F", x:  0.06, y: -0.94, drift: 0.78, ring:  -90 },
+  { id: "nutrition", label: "Nutrition",      hue: "#8FBF6F", x:  0.80, y: -0.58, drift: 1.24, ring:  -45 },
+  { id: "workouts",  label: "Workouts",       hue: "#E25C4F", x: -0.84, y: -0.52, drift: 1.00, ring: -135 },
+  { id: "sleep",     label: "Sleep",          hue: "#8B9FE8", x:  1.02, y:  0.24, drift: 0.86, ring:    0 },
+  { id: "recovery",  label: "Recovery",       hue: "#B18BE8", x: -1.06, y:  0.20, drift: 1.32, ring:  180 },
+  { id: "wellness",  label: "Wellness",       hue: "#5FB5A5", x:  0.48, y:  0.82, drift: 1.12, ring:   45 },
+  { id: "community", label: "Community",      hue: "#E5B54E", x: -0.56, y:  0.78, drift: 0.94, ring:  135 },
+  { id: "cycle",     label: "Cycle Tracking", hue: "#E08BB0", x: -0.02, y:  1.02, drift: 1.08, ring:   90 },
 ];
+
+/* ── The glyphs ─────────────────────────────────────────────────────────────
+   One drawing per module, all on a 48×48 grid, stroke-only. Deliberately
+   abstract-minimal rather than literal iconography: each is a single idea —
+   a crescent, a settling wave, a breathing ring — legible at a glance with
+   the label underneath doing the naming. */
+export const GLYPH_PATHS: Record<string, string[]> = {
+  /* Broken focus arcs around a core: attention, reading everything. */
+  "ai-coach": [
+    "M24 8 A16 16 0 0 1 40 24",
+    "M24 40 A16 16 0 0 1 8 24",
+    "M28 24a4 4 0 1 1-8 0 4 4 0 0 1 8 0",
+  ],
+  /* A stem and its leaf. */
+  nutrition: [
+    "M24 41 C24 31 24 22 30 12",
+    "M30 12 C22 12 16 18 16.5 26 C25 25.5 30 19 30 12 Z",
+  ],
+  /* A rising pulse. */
+  workouts: ["M7 34 H14 L19 26 L25 31 L31 14 L34 22 H41"],
+  /* A crescent. */
+  sleep: ["M30 8 A17 17 0 1 0 30 40 A13.5 13.5 0 0 1 30 8 Z"],
+  /* A wave settling flat. */
+  recovery: [
+    "M7 24 C10 15 13.5 15 16.5 24 C19 31 21.5 31 24 24 C26 18.5 28 18.5 30 24 C31.7 28 33.6 28 35.3 24 L41 24",
+  ],
+  /* A breathing ring: the outer breath, the inner rest. */
+  wellness: [
+    "M39 24a15 15 0 1 1-30 0 15 15 0 0 1 30 0",
+    "M31 24a7 7 0 1 1-14 0 7 7 0 0 1 14 0",
+  ],
+  /* Three lives overlapping. */
+  community: [
+    "M32 17a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
+    "M25.5 30a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
+    "M38.5 30a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
+  ],
+  /* An open loop with its phase marked. */
+  cycle: [
+    "M24 9 A15 15 0 1 1 11.2 16.2",
+    "M13 20.5a2.6 2.6 0 1 1-5.2 0 2.6 2.6 0 0 1 5.2 0",
+  ],
+};
 
 /* ── Scale ──────────────────────────────────────────────────────────────────
    Everything sizes off the viewport's smaller edge (vmin), so the composition
    holds its proportions from a 360px phone to a 27" display instead of
    becoming a cluster of small objects marooned in a large empty screen.     */
-const TILE  = "clamp(62px, 8.5vmin, 88px)";
-const GLYPH = "clamp(26px, 3.6vmin, 38px)";
+const TILE = "clamp(56px, 8vmin, 82px)";
 const RADIUS_MIN = 130;
 const RADIUS_MAX = 300;
+
+/* Presence, not drift: ±3px of slow breath at low frequency. The modules
+   read as settled objects with life in them, not things floating loose. */
+const DRIFT_AX = 3;
+const DRIFT_AY = 3.5;
+
+/* ── The tile ───────────────────────────────────────────────────────────────
+   The container, back by request — executed as dark glass rather than the
+   old flat tinted square: near-black fill with a faint wash of the module's
+   hue, a 1px hue-tinted border, a top light-catch, and the stroke glyph
+   glowing quietly inside. Shared with the features page's gathering beat so
+   both experiences carry one visual language. */
+export function GlyphTile({ id, hue, size = TILE }: { id: string; hue: string; size?: string }) {
+  return (
+    <span
+      style={{
+        width: size,
+        height: size,
+        flexShrink: 0,
+        borderRadius: "24%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: `linear-gradient(155deg, ${hue}1C 0%, rgba(16,13,11,0.94) 58%, rgba(10,9,7,0.96) 100%)`,
+        border: `1px solid ${hue}3D`,
+        boxShadow: `0 16px 44px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.09), 0 0 30px ${hue}14`,
+      }}
+    >
+      <svg
+        viewBox="0 0 48 48"
+        fill="none"
+        style={{ width: "58%", height: "58%", overflow: "visible", filter: `drop-shadow(0 0 5px ${hue}70)` }}
+      >
+        {(GLYPH_PATHS[id] ?? []).map((d, i) => (
+          <path key={i} d={d} stroke={hue} strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round" />
+        ))}
+      </svg>
+    </span>
+  );
+}
 
 /* ── Timing ─────────────────────────────────────────────────────────────────
    Budget: 5.00s, first frame to homepage revealed.
@@ -124,15 +214,51 @@ function FloatingIcon({
   clock: MotionValue<number>;
 }) {
   const seed = index * 1.7;
-  const amp = stage === "merge" ? 0 : 1;
+  const amp = stage === "float" ? 1 : 0;
 
-  const driftX = useTransform(clock, (t) => Math.sin(t * 2.10 * item.drift + seed) * 14 * amp);
-  const driftY = useTransform(clock, (t) => Math.cos(t * 1.75 * item.drift + seed * 1.3) * 16 * amp);
-  const driftR = useTransform(clock, (t) => Math.sin(t * 1.30 * item.drift + seed * 0.7) * 2.8 * amp);
+  const driftX = useTransform(clock, (t) => Math.sin(t * 0.7 * item.drift + seed) * DRIFT_AX * amp);
+  const driftY = useTransform(clock, (t) => Math.cos(t * 0.55 * item.drift + seed * 1.3) * DRIFT_AY * amp);
+
+  /* Ring-then-collapse. Beat one: every tile glides onto a perfect circle —
+     equal spacing, equal radius — so for a moment there is a precise,
+     engineered ring. Beat two: the ring turns 40° as ONE body while it
+     contracts into the centre, accelerating as it closes (radius ∝ 1−g^1.6,
+     baked into the keyframes; the tween runs linear). An iris closing, not
+     a vortex. The 30ms stagger is grain, not a cascade — all eight are in
+     formation and arrive together. */
+  const merge = useMemo(() => {
+    const ringR = radius * 0.62;
+    const th0 = (item.ring * Math.PI) / 180;
+    const sweep = (40 * Math.PI) / 180;
+    const N = 9;
+    const xs: (number | null)[] = [null];
+    const ys: (number | null)[] = [null];
+    const times = [0];
+    xs.push(Math.cos(th0) * ringR);
+    ys.push(Math.sin(th0) * ringR);
+    times.push(0.38);
+    for (let k = 1; k <= N; k++) {
+      const g = k / N;
+      const th = th0 + sweep * g;
+      const r = ringR * (1 - Math.pow(g, 1.6));
+      xs.push(Math.cos(th) * r);
+      ys.push(Math.sin(th) * r);
+      times.push(0.38 + 0.62 * g);
+    }
+    /* Segment easings: an easeInOut glide onto the ring, then linear along
+       the pre-baked arc. */
+    const ease = ["easeInOut", ...Array<string>(N).fill("linear")] as ("easeInOut" | "linear")[];
+    return { xs, ys, times, ease };
+  }, [item.ring, radius]);
 
   const target =
     stage === "merge"
-      ? { x: 0, y: 0, opacity: 0, scale: 0.14 }
+      ? {
+          x: merge.xs,
+          y: merge.ys,
+          opacity: [null, 1, 1, 0] as (number | null)[],
+          scale: [null, 0.9, 0.8, 0.1] as (number | null)[],
+        }
       : stage === "gather"
         ? { x: item.x * radius * 1.12, y: item.y * radius * 1.12, opacity: 1, scale: 0.96 }
         : { x: item.x * radius, y: item.y * radius, opacity: 1, scale: 1 };
@@ -140,16 +266,11 @@ function FloatingIcon({
   const transition =
     stage === "merge"
       ? {
-          /* Long and critically damped. A slow spring decelerates for most of
-             its travel, which is the whole point here — they should ease into
-             the centre, not arrive and stop. No overshoot: seven things
-             converging on one point cannot afford to smear through it. */
-          type: "spring" as const,
-          bounce: 0,
-          duration: 0.9,
-          delay: index * 0.1,
-          /* Gone at ~85% of the travel. See the timing note above. */
-          opacity: { duration: 0.42, delay: 0.06 + index * 0.1, ease: "easeIn" as const },
+          x: { duration: 1.02, delay: index * 0.03, times: merge.times, ease: merge.ease },
+          y: { duration: 1.02, delay: index * 0.03, times: merge.times, ease: merge.ease },
+          scale: { duration: 1.02, delay: index * 0.03, times: [0, 0.38, 0.62, 1], ease: "easeIn" as const },
+          /* Gone just before the centre — you see the close, never the pile-up. */
+          opacity: { duration: 1.02, delay: index * 0.03, times: [0, 0.38, 0.78, 0.97] },
         }
       : stage === "gather"
         ? { type: "spring" as const, bounce: 0, duration: 0.45, delay: index * 0.02 }
@@ -173,61 +294,33 @@ function FloatingIcon({
         style={{
           x: driftX,
           y: driftY,
-          rotate: driftR,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "clamp(8px, 1.2vmin, 13px)",
+          gap: "clamp(9px, 1.4vmin, 14px)",
         }}
       >
-        <span
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: TILE,
-            height: TILE,
-            borderRadius: "clamp(16px, 2.2vmin, 23px)",
-            background: item.tint,
-            border: `1px solid ${item.ink}38`,
-            boxShadow: "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.13)",
-          }}
-        >
-          {item.icon ?? (
-            <span
-              aria-hidden="true"
-              style={{
-                width: GLYPH,
-                height: GLYPH,
-                borderRadius: "clamp(7px, 1vmin, 11px)",
-                border: `1.5px solid ${item.ink}`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: item.ink,
-                fontSize: "clamp(13px, 1.8vmin, 18px)",
-                fontWeight: 700,
-              }}
-            >
-              {item.label.charAt(0)}
-            </span>
-          )}
-        </span>
-        <span
+        <GlyphTile id={item.id} hue={item.hue} />
+        {/* Labels step aside the moment the ring forms — eight captions
+            rotating in formation would be noise, not information. */}
+        <motion.span
+          animate={{ opacity: stage === "merge" ? 0 : 1 }}
+          transition={{ duration: 0.25 }}
           style={{
             fontSize: "clamp(11px, 1.5vmin, 14px)",
             fontWeight: 600,
-            letterSpacing: "0.015em",
-            color: "rgba(255,255,255,0.72)",
+            letterSpacing: "0.04em",
+            color: "rgba(255,255,255,0.66)",
             whiteSpace: "nowrap",
           }}
         >
           {item.label}
-        </span>
+        </motion.span>
       </motion.div>
     </motion.div>
   );
 }
+
 
 export default function IntroAnimation({
   /** Set false while reviewing so it replays on every mount. */

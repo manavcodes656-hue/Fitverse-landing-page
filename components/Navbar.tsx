@@ -16,8 +16,8 @@ import Button from "@/components/ui/Button";
    shorter than its 44px: the primary stays the tallest thing in the cluster.
    The fixed width makes the pair genuinely identical rather than letting
    "Google Play" run wider than "App Store". */
-const NAV_BADGE_H = 36;
-const NAV_BADGE_W = 128;
+const NAV_BADGE_H = 40;
+const NAV_BADGE_W = 134;
 const NAV_PILL = 999;
 
 /* The drawer's nav rows: a ghost button that reads at reading size and aligns
@@ -96,11 +96,9 @@ function useFocusTrap(active: boolean, onClose: () => void) {
 /* ── Pricing ──────────────────────────────────────────────────────────────── */
 function PricingModal({
   onClose,
-  onJoinWaitlist,
   originX,
 }: {
   onClose: () => void;
-  onJoinWaitlist: () => void;
   originX: number;
 }) {
   const reduced = useReducedMotion();
@@ -131,49 +129,51 @@ function PricingModal({
         aria-labelledby="pricing-title"
         /* Anchored origin: the sheet grows from the control that opened it,
            so the spatial relationship stays obvious. */
-        style={{ transformOrigin: `${originX}px top` }}
+        style={{
+          transformOrigin: `${originX}px top`,
+          background: "#141110",
+          border: "1px solid rgba(255,255,255,0.09)",
+          boxShadow: "0 24px 60px rgba(0,0,0,0.4)",
+        }}
         initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12, filter: "blur(6px)" }}
         animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
         exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12, filter: "blur(6px)" }}
         transition={reduced ? { duration: 0.18 } : springSheet}
-        className="relative rounded-3xl w-full max-w-lg max-h-[88svh] overflow-y-auto mat-thick"
+        className="relative rounded-2xl w-full max-w-sm max-h-[88svh] overflow-y-auto"
       >
-        <div className="px-8 pt-8 pb-6" style={{ borderBottom: "1px solid var(--border-light)" }}>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6560", marginBottom: 6 }}>
-                Pricing
-              </p>
-              <h2 id="pricing-title" style={{ fontSize: 28, fontWeight: 700, color: "#1A1512", letterSpacing: "-0.025em" }}>
-                Pricing coming soon.
-              </h2>
-            </div>
-            <Button
-              onClick={onClose}
-              variant="icon"
-              size="sm"
-              className="flex-shrink-0"
-              style={{ color: "#57514B" }}
-              aria-label="Close pricing"
-            >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                <path d="M13.5 4.5L4.5 13.5M4.5 4.5l9 9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-              </svg>
-            </Button>
-          </div>
-        </div>
+        <Button
+          onClick={onClose}
+          variant="icon"
+          size="sm"
+          ground="dark"
+          className="absolute top-4 right-4 z-10"
+          aria-label="Close pricing"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M13.5 4.5L4.5 13.5M4.5 4.5l9 9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+          </svg>
+        </Button>
 
-        {/* No tiers, no numbers, no feature lists — pricing is announced at
-            launch. The modal stays so the nav item still answers the question. */}
-        <div className="px-8 py-10 flex flex-col items-center text-center">
-          <p style={{ fontSize: 15, color: "#57514B", lineHeight: 1.65, maxWidth: "38ch", marginBottom: 24 }}>
-            We&apos;re finalizing plans ahead of launch. Join the waitlist and
-            you&apos;ll be the first to see them — waitlist members get launch
-            pricing before anyone else.
+        {/* Two lines and a lot of air. The glowing dot, accent eyebrow,
+            hairline rule and fine print that used to live here were all
+            decoration around a message that is one sentence long. */}
+        <div
+          className="flex flex-col items-center text-center"
+          style={{ padding: "clamp(64px, 11vh, 88px) clamp(32px, 7vw, 56px)" }}
+        >
+          <h2
+            id="pricing-title"
+            style={{
+              fontSize: 26, fontWeight: 600,
+              color: "#FDFCF9", letterSpacing: "-0.02em", lineHeight: 1.2,
+              marginBottom: 12,
+            }}
+          >
+            Coming soon
+          </h2>
+          <p style={{ fontSize: 15, color: "rgba(253,252,249,0.55)", lineHeight: 1.6 }}>
+            Pricing will be announced at launch.
           </p>
-          <Button onClick={onJoinWaitlist} variant="primary" size="md">
-            Join the waitlist
-          </Button>
         </div>
       </motion.div>
     </motion.div>
@@ -181,8 +181,9 @@ function PricingModal({
 }
 
 /* ── Store badges ─────────────────────────────────────────────────────────────
-   Outline buttons carrying the real store marks, with the availability status
-   in a tooltip rather than a chip crammed inside the button.
+   Official-style black store badges — Apple mark with "Download on the App
+   Store", Play mark with "Get it on Google Play" — with the availability
+   status in a tooltip rather than a chip crammed inside the button.
 
    The tooltip is the part worth being careful about. An earlier revision of
    this component used a hover-only tooltip and it was replaced precisely
@@ -195,11 +196,7 @@ function PricingModal({
 function StoreBadge({ store, scrolled }: { store: "apple" | "google"; scrolled: boolean }) {
   const reduced = useReducedMotion();
   const [open, setOpen] = useState(false);
-  /* Store names as plain text plus a generic download glyph. The names are
-     ordinary descriptive use; it is the official badge artwork that is
-     licensed for linking to a live listing, and that goes in at launch. */
   const label = store === "apple" ? "App Store" : "Google Play";
-  const ink = scrolled ? "#1A1512" : "#fff";
 
   return (
     <span style={{ position: "relative", display: "inline-flex" }}>
@@ -214,32 +211,49 @@ function StoreBadge({ store, scrolled }: { store: "apple" | "google"; scrolled: 
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center justify-center"
+        className="inline-flex items-center"
         style={{
           width: NAV_BADGE_W,
           height: NAV_BADGE_H,
-          gap: 7,
-          /* Soft rectangle rather than the capsule the rest of the bar uses:
-             these are a quieter class of control than the primary CTA. */
-          borderRadius: 10,
-          /* Outline, not fill. A filled badge here would compete directly with
-             the filled primary sitting beside it. */
-          background: "transparent",
-          border: `1px solid ${scrolled ? "rgba(26,21,18,0.14)" : "rgba(255,255,255,0.28)"}`,
+          gap: 8,
+          paddingInline: 12,
+          /* Official-badge geometry: black rounded rectangle, white marks,
+             two-line lockup. Black in both scroll states — the badge is an
+             artifact with its own ground, not a themed control. */
+          borderRadius: 9,
+          background: "#000",
+          border: `1px solid ${scrolled ? "rgba(26,21,18,0.35)" : "rgba(255,255,255,0.32)"}`,
           cursor: "default",
           transition: "border-color 0.3s ease",
         }}
       >
-        {/* Generic download glyph — arrow into a tray. Says "this is where you
-            get the app" without borrowing either store's mark. */}
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
-          <path d="M12 3v11m0 0l-4.2-4.2M12 14l4.2-4.2" stroke={ink} strokeWidth="1.9"
-            strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M4.5 16.5v1.8A2.7 2.7 0 0 0 7.2 21h9.6a2.7 2.7 0 0 0 2.7-2.7v-1.8" stroke={ink}
-            strokeWidth="1.9" strokeLinecap="round" />
-        </svg>
-        <span style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: "-0.01em", color: ink }}>
-          {label}
+        {store === "apple" ? (
+          /* Apple mark */
+          <svg width="17" height="20" viewBox="0 0 384 512" fill="#fff" aria-hidden="true" style={{ flexShrink: 0 }}>
+            <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.7-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+          </svg>
+        ) : (
+          /* Google Play mark */
+          <svg width="17" height="19" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
+            <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5Z" fill="#00A0FF" />
+            <path d="M16.81,8.88L14.54,11.15L6.05,2.66L16.81,8.88Z" fill="#00E076" />
+            <path d="M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81Z" fill="#FFCE00" />
+            <path d="M6.05,21.34L14.54,12.85L16.81,15.12L6.05,21.34Z" fill="#FF3A44" />
+          </svg>
+        )}
+        <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
+          {store === "apple" ? (
+            <span style={{ fontSize: 8.5, fontWeight: 500, lineHeight: 1, color: "rgba(255,255,255,0.9)", letterSpacing: "0.01em" }}>
+              Download on the
+            </span>
+          ) : (
+            <span style={{ fontSize: 8, fontWeight: 500, lineHeight: 1, color: "rgba(255,255,255,0.9)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              Get it on
+            </span>
+          )}
+          <span style={{ fontSize: 14.5, fontWeight: 600, lineHeight: 1.15, color: "#fff", letterSpacing: "-0.015em", whiteSpace: "nowrap" }}>
+            {label}
+          </span>
         </span>
       </button>
 
@@ -303,10 +317,13 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [pathname]);
 
-  const scrollToModules = () => {
+  /* "About" always lands on the top hero. Previously this deep-linked to
+     /#modules, which dropped returning visitors into the middle of the pinned
+     horizontal-scroll section instead of the top of the page. */
+  const scrollToHome = () => {
     setMobileOpen(false);
-    if (pathname !== "/") { window.location.href = "/#modules"; return; }
-    document.getElementById("modules")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+    if (pathname !== "/") { window.location.href = "/"; return; }
+    window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
   };
 
   const scrollToWaitlist = () => {
@@ -366,7 +383,7 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2 gap-12">
-            <button onClick={scrollToModules} className={`nav-link ${pathname === "/" ? "nav-link-active" : ""}`}>
+            <button onClick={scrollToHome} className={`nav-link ${pathname === "/" ? "nav-link-active" : ""}`}>
               About
             </button>
             <Link href="/features" className={`nav-link ${isFeaturesActive ? "nav-link-active" : ""}`}>
@@ -378,7 +395,10 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center ml-auto z-10" style={{ gap: 20 }}>
-            <div className="flex items-center gap-2">
+            {/* Badges are xl-only: between md and xl the absolutely-centred
+                nav links and this right cluster physically overlap. Below xl
+                the badges live in the drawer instead. */}
+            <div className="hidden xl:flex items-center gap-2">
               <StoreBadge store="apple" scrolled={scrolled} />
               <StoreBadge store="google" scrolled={scrolled} />
             </div>
@@ -458,7 +478,7 @@ export default function Navbar() {
                   the same fill, radius and press behaviour as every other
                   button. The Features row stays a next/link so in-app
                   navigation is still client-side. */}
-              <Button onClick={scrollToModules} variant="ghost" size="lg" fullWidth style={DRAWER_LINK}>
+              <Button onClick={scrollToHome} variant="ghost" size="lg" fullWidth style={DRAWER_LINK}>
                 About
               </Button>
               <Link href="/features" onClick={closeDrawer} style={{ ...DRAWER_LINK, ...DRAWER_LINK_BASE }}>
@@ -486,7 +506,6 @@ export default function Navbar() {
           <PricingModal
             originX={originX}
             onClose={() => setPricingOpen(false)}
-            onJoinWaitlist={() => { setPricingOpen(false); scrollToWaitlist(); }}
           />
         )}
       </AnimatePresence>
