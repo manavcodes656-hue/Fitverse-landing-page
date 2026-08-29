@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useId } from "react";
 import Link from "next/link";
-import { motion, useInView } from "framer-motion";
+import Image from "next/image";
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import { reveal, springSnappy } from "@/lib/motion";
+import Button from "@/components/ui/Button";
 
 type FormState = "idle" | "loading" | "success" | "duplicate" | "error";
 
@@ -32,12 +35,23 @@ function LinkedInIcon() {
   );
 }
 
+/* Hover and focus share one CSS rule, so a keyboard user gets the same
+   affordance a mouse user does. Previously this lived in onMouseEnter /
+   onMouseLeave handlers that mutated inline styles — which no focus event
+   could ever trigger. */
+const footerLink =
+  "text-[14px] text-white/70 hover:text-white focus-visible:text-white transition-colors duration-150 rounded";
+
 export default function Footer() {
+  const reduced = useReducedMotion();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [formState, setFormState] = useState<FormState>("idle");
   const sectionRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, margin: "-80px" });
+
+  const nameId = useId();
+  const emailId = useId();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,14 +78,11 @@ export default function Footer() {
     { label: "AI Coach", href: "/features#ai-coach" },
     { label: "Community", href: "/features#community" },
     { label: "Wellness", href: "/features#wellness" },
-    { label: "For Women", href: "/features#for-women" },
     { label: "Workout", href: "/features#workout" },
   ];
 
-  // Blog / Careers / Press have no content behind them yet, so they are rendered
-  // as plain text rather than links that go nowhere.
   const companyLinks: { label: string; href?: string }[] = [
-    { label: "Platform", href: "/#modules" },
+    { label: "About", href: "/#modules" },
     { label: "Contact", href: "mailto:hello@fitverse.app" },
     { label: "Blog (coming soon)" },
     { label: "Careers (coming soon)" },
@@ -84,238 +95,251 @@ export default function Footer() {
     { label: "Cookie Policy", href: "/cookies" },
   ];
 
-  const buttonVariants = {
-    hover: {
-      scale: 1.015,
-      backgroundColor: "#C4956A",
-      color: "#0F0D0A",
-      y: -1,
-      boxShadow: "0 0 28px rgba(196,149,106,0.35)",
-    },
-    tap: { scale: 0.985 },
-  };
+  /* The field is a capsule to match the submit button sitting flush beside it.
+     A 14px-radius input against a capsule button reads as two unrelated parts
+     of one control. */
+  const inputClass =
+    "w-[220px] h-[52px] rounded-full px-6 text-[15px] font-normal text-white " +
+    "bg-white/[0.07] border border-white/20 placeholder-white/45 " +
+    "focus:border-white/60 focus:bg-white/[0.11] focus:outline-none " +
+    "disabled:opacity-50 transition-all duration-200";
 
   return (
-    <footer
-      id="waitlist"
-      className="text-white"
-      style={{ backgroundColor: "#0F0D0A" }}
-      role="contentinfo"
-    >
-      {/* Waitlist section */}
-      <div ref={sectionRef} className="border-b" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+    <footer id="waitlist" className="text-white" style={{ backgroundColor: "#0F0D0A" }} role="contentinfo">
+      {/* ── Waitlist ── */}
+      <div ref={sectionRef} style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
         <div className="max-w-7xl mx-auto px-6 py-20 lg:py-28 flex flex-col items-center justify-center text-center">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: reduced ? 0 : 32 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            transition={reveal}
             className="w-full max-w-2xl flex flex-col items-center justify-center text-center"
           >
-            <p className="text-[11px] font-semibold tracking-[0.1em] uppercase mb-4 text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <p style={{
+              fontSize: 12, fontWeight: 600, letterSpacing: "0.1em",
+              textTransform: "uppercase", color: "rgba(255,255,255,0.62)", marginBottom: 16,
+            }}>
               Get early access
             </p>
-            <h2 className="text-white font-bold text-center mb-2" style={{ fontSize: "40px", letterSpacing: "-0.025em", lineHeight: 1.1 }}>
+            <h2 style={{
+              fontSize: "clamp(2rem, 5vw, 2.75rem)", fontWeight: 700, color: "white",
+              letterSpacing: "-0.03em", lineHeight: 1.08, marginBottom: 12, textWrap: "balance",
+            }}>
               Be first when we launch.
             </h2>
-            <p className="text-[15px] font-light text-center mb-8" style={{ color: "rgba(255,255,255,0.6)" }}>
-              Your launch invite and the occasional build update. No spam, no
-              noise, unsubscribe anytime. See our{" "}
-              <Link href="/privacy" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "underline" }}>
+            <p style={{
+              fontSize: "0.9375rem", color: "rgba(255,255,255,0.72)",
+              lineHeight: 1.6, marginBottom: 32, maxWidth: "46ch",
+            }}>
+              Your launch invite and the occasional build update. No spam, no noise,
+              unsubscribe anytime. See our{" "}
+              <Link href="/privacy" className="text-white underline underline-offset-2 hover:text-white focus-visible:text-white">
                 Privacy Policy
-              </Link>
-              .
+              </Link>.
             </p>
 
             {formState === "success" ? (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: reduced ? 0 : 8 }}
                 animate={{ opacity: 1, y: 0 }}
+                transition={springSnappy}
                 className="flex items-center justify-center gap-3 py-4"
               >
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M2.5 7l3 3 6-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <span className="w-8 h-8 rounded-full bg-white/12 flex items-center justify-center flex-shrink-0">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M2.5 7l3 3 6-6" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                </div>
+                </span>
                 <p className="text-white text-[16px] font-medium">You&apos;re in. See you at launch.</p>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-row gap-3 justify-center items-center flex-wrap w-full">
+                {/* Placeholders are not labels: they vanish on focus and are not a
+                    reliable accessible name. */}
+                <label htmlFor={nameId} className="sr-only">Your name</label>
                 <input
+                  id={nameId}
+                  name="name"
                   type="text"
+                  autoComplete="given-name"
                   placeholder="Your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
                   disabled={formState === "loading"}
-                  className="placeholder-white/35 focus:border-white/50 focus:bg-white/[0.09] disabled:opacity-50 outline-none w-[220px] h-[52px] bg-white/[0.06] border border-white/[0.15] rounded-[14px] px-5 text-[15px] font-normal text-white transition-all duration-200"
+                  className={inputClass}
                 />
+
+                <label htmlFor={emailId} className="sr-only">Email address</label>
                 <input
+                  id={emailId}
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={formState === "loading"}
-                  className="placeholder-white/35 focus:border-white/50 focus:bg-white/[0.09] disabled:opacity-50 outline-none w-[220px] h-[52px] bg-white/[0.06] border border-white/[0.15] rounded-[14px] px-5 text-[15px] font-normal text-white transition-all duration-200"
+                  className={inputClass}
                 />
-                <motion.button
+
+                <Button
                   type="submit"
+                  size="lg"
+                  ground="dark"
                   disabled={formState === "loading"}
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  transition={{ duration: 0.15, ease: "easeOut" }}
-                  className="flex-shrink-0 bg-white text-[#0a0a0a] font-semibold disabled:opacity-60 whitespace-nowrap flex items-center justify-center gap-2 h-[52px] px-8 rounded-[14px] border-none cursor-pointer transition-all"
+                  aria-busy={formState === "loading"}
+                  className="flex-shrink-0"
                 >
                   {formState === "loading" ? (
                     <>
-                      <svg className="animate-spin" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <svg className="animate-spin" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                         <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10" />
                       </svg>
-                      Joining...
+                      Joining…
                     </>
-                  ) : "Join Waitlist"}
-                </motion.button>
+                  ) : "Join waitlist"}
+                </Button>
               </form>
             )}
 
-            {formState === "duplicate" && (
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-[13px] text-center" style={{ color: "rgba(255,255,255,0.5)" }}>
-                You&apos;re already on the list. We&apos;ll see you at launch.
-              </motion.p>
-            )}
-            {formState === "error" && (
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-[13px] text-center text-red-400">
-                Something went wrong. Try again.
-              </motion.p>
-            )}
+            {/* Status is announced, not just shown. Without a live region a
+                screen-reader user submits the form and hears nothing back. */}
+            <p role="status" aria-live="polite" className="mt-3 text-[13px] text-center min-h-[1.25rem]">
+              {formState === "duplicate" && (
+                <span style={{ color: "rgba(255,255,255,0.72)" }}>
+                  You&apos;re already on the list. We&apos;ll see you at launch.
+                </span>
+              )}
+              {formState === "error" && (
+                <span style={{ color: "#FCA5A5" }}>Something went wrong. Try again.</span>
+              )}
+            </p>
           </motion.div>
         </div>
       </div>
 
-      {/* Footer body */}
+      {/* ── Footer body ── */}
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
-          {/* Brand */}
-          <div className="lg:col-span-1" style={{ opacity: 0.9 }}>
+          <div className="lg:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M3 8h2.5M10.5 8H13M8 3v2.5M8 10.5V13M5.5 5.5l1.5 1.5M9 9l1.5 1.5M9 5.5L7.5 7M5.5 10.5L7 9" stroke="black" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </div>
-              <span className="text-[17px] font-semibold tracking-tight text-white">FitVerse</span>
+              {/* Same mark and same tile as the navbar. This was previously a
+                  drawn starburst icon, so the site shipped two different
+                  logos on one page. The footer sits on dark, so it takes the
+                  navbar's over-dark treatment. */}
+              <span style={{
+                width: 28, height: 28, borderRadius: 8, overflow: "hidden",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.3)",
+                flexShrink: 0,
+              }}>
+                <Image src="/logo.jpeg" alt="" width={28} height={28}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </span>
+              <span className="text-[17px] font-semibold text-white" style={{ letterSpacing: "-0.02em" }}>FitVerse</span>
             </div>
-            <p className="text-[13px] leading-relaxed max-w-[200px]" style={{ color: "rgba(255,255,255,0.65)" }}>
+            <p className="text-[13px] leading-relaxed max-w-[220px]" style={{ color: "rgba(255,255,255,0.72)" }}>
               An AI fitness system built in India. Currently in pre-launch.
             </p>
 
-            {/* Social icons */}
-            <div className="flex gap-2.5 mt-6">
+            <ul className="flex gap-2.5 mt-6 list-none p-0">
               {[
                 { label: "Instagram", color: "#E1306C", Icon: InstagramIcon },
-                { label: "Twitter / X", color: "transparent", Icon: TwitterIcon },
+                { label: "X (Twitter)", color: "transparent", Icon: TwitterIcon },
                 { label: "LinkedIn", color: "#0A66C2", Icon: LinkedInIcon },
               ].map(({ label, color, Icon }) => (
-                <motion.a
-                  key={label}
-                  href="#"
-                  aria-label={label}
-                  whileHover={{ scale: 1.015, backgroundColor: "rgba(255,255,255,0.15)" }}
-                  transition={{ duration: 0.15, ease: "easeOut" }}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white"
-                  style={{
-                    background: color === "transparent" ? "rgba(255,255,255,0.08)" : color,
-                    border: color === "transparent" ? "1px solid rgba(255,255,255,0.12)" : "none",
-                  }}
-                >
-                  <Icon />
-                </motion.a>
-              ))}
-            </div>
-          </div>
-
-          {/* Product */}
-          <div>
-            <p className="text-[11px] font-semibold tracking-[0.1em] uppercase mb-5" style={{ color: "rgba(255,255,255,0.4)" }}>
-              Product
-            </p>
-            <ul className="space-y-3">
-              {productLinks.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-[14px] transition-colors duration-150" style={{ color: "rgba(255,255,255,0.65)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.65)")}
+                <li key={label}>
+                  {/* TODO: real profile URLs. Until they exist these are marked
+                      unavailable rather than pointing at "#". */}
+                  <span
+                    aria-label={`${label} — coming soon`}
+                    title="Coming soon"
+                    className="w-9 h-9 rounded-lg flex items-center justify-center text-white/80"
+                    style={{
+                      background: color === "transparent" ? "rgba(255,255,255,0.08)" : color,
+                      border: color === "transparent" ? "1px solid rgba(255,255,255,0.14)" : "none",
+                      opacity: 0.75,
+                    }}
                   >
-                    {link.label}
-                  </Link>
+                    <Icon />
+                  </span>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Company */}
-          <div>
-            <p className="text-[11px] font-semibold tracking-[0.1em] uppercase mb-5" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <nav aria-labelledby="footer-product">
+            <p id="footer-product" style={{
+              fontSize: 11.5, fontWeight: 600, letterSpacing: "0.1em",
+              textTransform: "uppercase", color: "rgba(255,255,255,0.62)", marginBottom: 20,
+            }}>
+              Product
+            </p>
+            <ul className="space-y-3 list-none p-0">
+              {productLinks.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className={footerLink}>{link.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav aria-labelledby="footer-company">
+            <p id="footer-company" style={{
+              fontSize: 11.5, fontWeight: 600, letterSpacing: "0.1em",
+              textTransform: "uppercase", color: "rgba(255,255,255,0.62)", marginBottom: 20,
+            }}>
               Company
             </p>
-            <ul className="space-y-3">
+            <ul className="space-y-3 list-none p-0">
               {companyLinks.map((link) => (
                 <li key={link.label}>
                   {link.href ? (
-                    <Link href={link.href} className="text-[14px] transition-colors duration-150" style={{ color: "rgba(255,255,255,0.65)" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.65)")}
-                    >
-                      {link.label}
-                    </Link>
+                    <Link href={link.href} className={footerLink}>{link.label}</Link>
                   ) : (
-                    <span className="text-[14px]" style={{ color: "rgba(255,255,255,0.65)" }}>
-                      {link.label}
-                    </span>
+                    <span className="text-[14px]" style={{ color: "rgba(255,255,255,0.5)" }}>{link.label}</span>
                   )}
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
-          {/* Legal */}
-          <div>
-            <p className="text-[11px] font-semibold tracking-[0.1em] uppercase mb-5" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <nav aria-labelledby="footer-legal">
+            <p id="footer-legal" style={{
+              fontSize: 11.5, fontWeight: 600, letterSpacing: "0.1em",
+              textTransform: "uppercase", color: "rgba(255,255,255,0.62)", marginBottom: 20,
+            }}>
               Legal
             </p>
-            <ul className="space-y-3">
+            <ul className="space-y-3 list-none p-0">
               {legalLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-[14px] transition-colors duration-150" style={{ color: "rgba(255,255,255,0.65)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.65)")}
-                  >
-                    {link.label}
-                  </Link>
+                  <Link href={link.href} className={footerLink}>{link.label}</Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-16 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <p className="text-[13px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <div
+          className="mt-16 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.09)" }}
+        >
+          {/* Was rgba(255,255,255,0.4) — roughly 3.8:1 on this ground, below the
+              4.5:1 minimum. Lifted rather than restyled. */}
+          <p className="text-[13px]" style={{ color: "rgba(255,255,255,0.62)" }}>
             © FitVerse · Since 2026 · Made in India 🇮🇳
           </p>
           <div className="flex gap-6">
-            <Link href="/privacy" className="text-[13px] transition-colors" style={{ color: "rgba(255,255,255,0.4)" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
-            >
+            <Link href="/privacy" className="text-[13px] text-white/62 hover:text-white focus-visible:text-white transition-colors"
+              style={{ color: "rgba(255,255,255,0.62)" }}>
               Privacy Policy
             </Link>
-            <Link href="/terms" className="text-[13px] transition-colors" style={{ color: "rgba(255,255,255,0.4)" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
-            >
+            <Link href="/terms" className="text-[13px] hover:text-white focus-visible:text-white transition-colors"
+              style={{ color: "rgba(255,255,255,0.62)" }}>
               Terms of Service
             </Link>
           </div>

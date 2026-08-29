@@ -21,8 +21,14 @@
   --text-muted:     #A39E98;
   --text-inverse:   #FDFCF9;
 
-  /* Accents */
-  --accent:        #C4956A;
+  /* Accents
+     Deep burnt orange. Two tokens, because one shade cannot serve both
+     grounds: --accent is 6.3:1 on white but only 3.1:1 on the dark footer, so
+     anything sitting on dark uses --accent-on-dark instead. That lighter
+     shade also clears 3.3:1 on white, which is why the focus ring below
+     can use it everywhere and stay visible on either background. */
+  --accent:         #A83D0B;
+  --accent-on-dark: #D9702F;
   --accent-dark:   #1A1512;
   --accent-glass:  rgba(255,255,255,0.12);
 
@@ -39,7 +45,9 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 72px;
+  /* Nav is 72px tall; the extra 8px keeps an anchored section from landing
+     flush against the underside of the bar. */
+  scroll-padding-top: 80px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -57,14 +65,20 @@ body {
 ────────────────────────────────────────────── */
 ::-webkit-scrollbar            { width: 5px; }
 ::-webkit-scrollbar-track      { background: transparent; }
-::-webkit-scrollbar-thumb      { background: rgba(196,149,106,0.3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover{ background: rgba(196,149,106,0.55); }
+::-webkit-scrollbar-thumb      { background: rgba(168,61,11,0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover{ background: rgba(168,61,11,0.55); }
 
 /* ──────────────────────────────────────────────
    SELECTION & FOCUS
 ────────────────────────────────────────────── */
-::selection    { background: rgba(196,149,106,0.18); color: var(--text-primary); }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+::selection    { background: rgba(168,61,11,0.18); color: var(--text-primary); }
+/* The lighter orange, deliberately: a focus ring appears on light and dark
+   surfaces alike, and this is the only one of the two that clears non-text
+   AA (3:1) against both. */
+/* No border-radius here: this rule used to force 4px onto the focused element
+   itself, which visibly squared off every capsule button the moment it took
+   keyboard focus. The outline follows each element's own radius instead. */
+:focus-visible { outline: 2px solid var(--accent-on-dark); outline-offset: 2px; }
 
 /* ──────────────────────────────────────────────
    SKELETON
@@ -100,8 +114,10 @@ body {
   content: '';
   position: absolute;
   bottom: 0; left: 0;
-  width: 100%; height: 1.5px;
-  background: var(--accent);
+  width: 100%; height: 1px;
+  /* Nav sits on the dark header over the hero video. Thinner than the 1.5px
+     it was: these are secondary to the CTA and should not compete with it. */
+  background: var(--accent-on-dark);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.22s ease;
@@ -178,3 +194,141 @@ body {
 .legal-content th      { background:var(--bg-surface); font-weight:600; color:var(--text-primary); text-align:left; padding:12px 16px; border:1px solid var(--border-light); }
 .legal-content td      { padding:12px 16px; border:1px solid var(--border-light); color:var(--text-secondary); vertical-align:top; }
 .legal-content strong  { font-weight:600; color:var(--text-primary); }
+
+/* ──────────────────────────────────────────────
+   MATERIALS  —  translucency conveys hierarchy
+   A floating functional layer that brings structure
+   without stealing focus. Content scrolls *under*
+   chrome rather than being boxed out by it.
+────────────────────────────────────────────── */
+:root {
+  /* Material weight encodes hierarchy. Heavier separates structural
+     regions; lighter draws attention to interactive elements.
+     Never stack a light material on another — legibility collapses. */
+  --mat-thin-bg:    rgba(253,252,249,0.62);
+  --mat-thin-blur:  blur(20px) saturate(180%);
+
+  --mat-thick-bg:   rgba(253,252,249,0.82);
+  --mat-thick-blur: blur(30px) saturate(180%);
+
+  --mat-dark-bg:    rgba(15,13,10,0.62);
+  --mat-dark-blur:  blur(20px) saturate(160%);
+
+  /* Bright top edge = light catching the material */
+  --mat-edge:       rgba(255,255,255,0.40);
+  --mat-edge-dark:  rgba(255,255,255,0.10);
+
+  /* Bigger surfaces read as thicker: stronger blur + deeper shadow */
+  --mat-shadow-sm:  0 1px 2px rgba(26,21,18,0.06);
+  --mat-shadow-lg:  0 24px 60px rgba(26,21,18,0.22);
+
+  /* Dim-to-focus scrim for modal tasks */
+  --scrim:          rgba(15,13,10,0.55);
+}
+
+.mat-thin {
+  background: var(--mat-thin-bg);
+  backdrop-filter: var(--mat-thin-blur);
+  -webkit-backdrop-filter: var(--mat-thin-blur);
+  border-bottom: 1px solid var(--mat-edge);
+}
+
+.mat-thick {
+  background: var(--mat-thick-bg);
+  backdrop-filter: var(--mat-thick-blur);
+  -webkit-backdrop-filter: var(--mat-thick-blur);
+  box-shadow: var(--mat-shadow-lg);
+}
+
+/* Vibrancy: over translucent surfaces, flat grey text dissolves.
+   Use higher contrast, slightly heavier weight, a touch more tracking. */
+.vibrant-secondary {
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+}
+
+/* Scroll edge effect — a soft fade where content meets floating chrome,
+   instead of a hard 1px divider. Only where chrome actually overlaps. */
+.scroll-edge::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 100%;
+  height: 16px;
+  background: linear-gradient(to bottom, rgba(253,252,249,0.55), transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+  mask-image: linear-gradient(to bottom, black, transparent);
+  pointer-events: none;
+}
+
+/* ──────────────────────────────────────────────
+   ACCESSIBILITY  —  three independent signals
+────────────────────────────────────────────── */
+
+/* 1. Reduced motion.
+   Not "no feedback" — a gentler, non-vestibular equivalent.
+   Travel and overshoot go; opacity and colour stay, because they
+   still carry meaning. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.12s !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Ambient loops are the worst offenders — stop them outright */
+  .nudge-left,
+  .nudge-right,
+  .hero-video { animation: none !important; }
+
+  /* Keep the pressed-state feedback, just without the travel */
+  .press\:scale:active { transform: none !important; }
+}
+
+/* 2. Reduced transparency.
+   Make translucent surfaces frostier: raise opacity, drop the blur. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --mat-thin-bg:  rgba(253,252,249,0.97);
+    --mat-thick-bg: rgba(253,252,249,1);
+    --mat-dark-bg:  rgba(15,13,10,0.97);
+    --scrim:        rgba(15,13,10,0.82);
+  }
+  .mat-thin, .mat-thick {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .scroll-edge::after { display: none; }
+}
+
+/* 3. Increased contrast.
+   Near-solid backgrounds with a defined, contrasting border. */
+@media (prefers-contrast: more) {
+  :root {
+    --text-secondary: #3A342F;
+    --text-muted:     #55504A;
+    --border-light:   rgba(26,21,18,0.28);
+  }
+  .mat-thin, .mat-thick {
+    background: var(--bg-primary);
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-bottom: 1px solid var(--text-primary);
+  }
+  :focus-visible { outline-width: 3px; }
+}
+
+/* ──────────────────────────────────────────────
+   PRESS FEEDBACK  —  on pointer-down, never on release
+   The moment lag appears, directness falls off a cliff.
+────────────────────────────────────────────── */
+.press\:scale {
+  transition: transform 100ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+.press\:scale:active { transform: scale(0.97); }

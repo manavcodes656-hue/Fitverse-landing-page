@@ -30,10 +30,12 @@ export const metadata: Metadata = {
 
 export default function FeaturesPage() {
   return (
-    <main>
+    <>
       <Navbar />
-      <FeaturesContent />
+      <main id="main">
+        <FeaturesContent />
+      </main>
       <Footer />
-    </main>
+    </>
   );
 }

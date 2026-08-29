@@ -9,23 +9,30 @@ interface LegalLayoutProps {
 
 export default function LegalLayout({ title, lastUpdated, children }: LegalLayoutProps) {
   return (
-    <main>
+    <>
       <Navbar />
-      <div className="pt-16">
+      <main id="main" className="pt-16">
         <div className="legal-page mx-auto" style={{ maxWidth: "760px", padding: "80px 24px" }}>
-          <p className="text-[12px] font-medium text-[#9CA3AF] uppercase tracking-widest mb-4">
+          {/* #9CA3AF on this ground measures about 2.8:1 — below the minimum. */}
+          <p className="text-[12px] font-medium uppercase mb-4" style={{ color: "#6B6560", letterSpacing: "0.09em" }}>
             Last updated: {lastUpdated}
           </p>
           <h1
-            className="text-[#111] font-bold mb-12"
-            style={{ fontSize: "40px", letterSpacing: "-0.025em", lineHeight: 1.1 }}
+            className="font-bold mb-12"
+            style={{
+              fontSize: "clamp(2rem, 5vw, 2.75rem)",
+              color: "#1A1512",
+              letterSpacing: "-0.03em",
+              lineHeight: 1.06,
+              textWrap: "balance",
+            }}
           >
             {title}
           </h1>
           <div className="legal-content">{children}</div>
         </div>
-      </div>
+      </main>
       <Footer />
-    </main>
+    </>
   );
 }

@@ -1,38 +1,34 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useState, useRef, useId } from "react";
+import { motion, AnimatePresence, useInView, useReducedMotion } from "framer-motion";
+import { springSnappy, springRotate, reveal } from "@/lib/motion";
 
 const faqs = [
   {
-    question: "What is FitVerse, exactly?",
+    question: "What is FitVerse?",
     answer:
-      "One app covering seven connected areas of your health: nutrition, sleep, AI coaching, community, wellness, cycle tracking, and workouts. The point isn't that each one exists — plenty of apps do one well. The point is that they read each other, so a bad week of sleep actually changes what your plan asks of you.",
+      "FitVerse is one app for the whole picture of your health: nutrition, workouts, sleep, AI coaching, wellness, community, and cycle tracking. Instead of seven separate trackers that each know one thing about you, it's a single system where every part informs the others.",
   },
   {
-    question: "When does FitVerse launch?",
+    question: "How is it different from using separate fitness apps?",
     answer:
-      "We haven't announced a public date yet. We're in pre-launch and building toward it. Join the waitlist and you'll hear it from us before it goes anywhere else — including the launch date itself, as soon as we can commit to one.",
+      "Separate apps each hold one piece and never talk to each other, so a rough week of sleep never changes what your training app asks of you the next morning. FitVerse reads them together, and that connection is the whole product, not a feature bolted on the side.",
   },
   {
-    question: "Is FitVerse free?",
+    question: "Who is FitVerse for, and do I need any experience?",
     answer:
-      "No, and we'd rather be straight about it than surprise you later. FitVerse is a paid subscription starting at ₹149/month on the annual plan, with monthly and 6-month options available. Every plan opens with a 7-day free trial, so you can decide after using it rather than before.",
+      "FitVerse is for anyone building a routine around a real life, from students and working professionals to complete beginners and people already deep into training. You don't need a gym, equipment or any experience to start. Log what you already eat, how you sleep and how you move, and let the coaching build from there.",
   },
   {
-    question: "How does the AI coach work?",
+    question: "Can I track my menstrual cycle in FitVerse?",
     answer:
-      "It reads across your logged data rather than at one slice of it — what you ate, how you slept, what you trained — and adjusts your plan as those inputs move. It's designed to notice patterns across areas that separate apps can't see, because they only ever hold one piece.",
+      "Yes. Cycle tracking is built in as one of FitVerse's seven modules, not another separate app to keep alongside this one. It sits with your nutrition, sleep and training, so your plan reflects all of you rather than a version with a piece missing.",
   },
   {
-    question: "How is my health data protected?",
+    question: "Is my health data private and secure?",
     answer:
-      "Your data is encrypted in transit and at rest, and our database uses row-level security so records are scoped to you. We don't sell, share or monetise personal health data. No system is completely secure — anyone claiming otherwise is overselling — but security is treated as a core requirement, not a feature. Full detail is in our Privacy Policy.",
-  },
-  {
-    question: "Will it be on iOS and Android?",
-    answer:
-      "Both are planned for launch. Neither is published yet, which is why the store badges on this site are marked coming soon rather than linking anywhere. Waitlist members get the download links first.",
+      "Yes. Everything is encrypted in transit and at rest, every record is scoped to your account alone, and we never sell your data or use your health information for advertising. You can request deletion at any time, and full detail is in our Privacy Policy.",
   },
 ];
 
@@ -47,58 +43,74 @@ function AccordionItem({
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const reduced = useReducedMotion();
+  const panelId = useId();
+  const buttonId = useId();
   const num = String(index + 1).padStart(2, "0");
 
   return (
     <div
-      onClick={onToggle}
-      className="relative cursor-pointer select-none"
       style={{
-        padding: "28px 0",
-        borderBottom: "1px solid rgba(26,21,18,0.08)",
-        borderTop: index === 0 ? "1px solid rgba(26,21,18,0.08)" : "none",
-        ...(isOpen ? { borderTopColor: "#C4956A", borderTopWidth: "2px" } : {}),
-        transition: "border-top-color 0.25s ease",
+        borderBottom: "1px solid var(--border-light)",
+        borderTop: index === 0 ? "1px solid var(--border-light)" : "none",
       }}
     >
-      {/* Ghost number */}
-      <span
-        aria-hidden="true"
+      {/* A real button: reachable by Tab, operable with Enter and Space,
+          and its open/closed state is announced rather than implied. */}
+      {/* The row is the control, so the press lands on the whole row rather
+          than the +/- glyph. It previously carried the inert press:scale class
+          and had no press feedback at all. */}
+      <motion.button
+        id={buttonId}
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        whileTap={reduced ? undefined : { scale: 0.995 }}
+        transition={springSnappy}
+        className="relative w-full text-left"
         style={{
-          position: "absolute",
-          right: 0,
-          top: "50%",
-          transform: "translateY(-50%)",
-          fontFamily: "Inter,sans-serif",
-          fontSize: "80px",
-          fontWeight: 900,
-          color: isOpen ? "rgba(196,149,106,0.1)" : "rgba(26,21,18,0.04)",
-          pointerEvents: "none",
-          lineHeight: 1,
-          transition: "color 0.3s ease",
-          userSelect: "none",
-        }}
-      >
-        {num}
-      </span>
-
-      {/* Question row */}
-      <div
-        style={{
+          padding: "28px 0",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           gap: 24,
           paddingRight: 16,
+          background: "none",
+          border: "none",
+          cursor: "pointer",
         }}
       >
+        {/* The index is structure, not ornament: its own column, so every
+            question starts at the same left edge and nothing can overlap the
+            toggle. Small type takes positive tracking — the reverse of the
+            display-sized numeral this replaces. */}
+        <span
+          aria-hidden="true"
+          style={{
+            width: 34,
+            flexShrink: 0,
+            fontSize: 13,
+            fontWeight: 500,
+            fontVariantNumeric: "tabular-nums lining-nums",
+            letterSpacing: "0.08em",
+            color: isOpen ? "#A83D0B" : "#6B6560",
+            transition: "color 0.2s ease",
+            userSelect: "none",
+          }}
+        >
+          {num}
+        </span>
+
         <span
           style={{
-            fontFamily: "Inter,sans-serif",
-            fontSize: "18px",
+            fontSize: "clamp(1rem, 1.9vw, 1.125rem)",
             fontWeight: 600,
-            color: isOpen ? "#C4956A" : "#1A1512",
+            /* The old amber measured roughly 2.6:1 on the cream surface — the open
+               state used to be less readable than the closed one. */
+            color: isOpen ? "#A83D0B" : "#1A1512",
             lineHeight: 1.4,
+            letterSpacing: "-0.015em",
             transition: "color 0.2s ease",
             flex: 1,
           }}
@@ -106,59 +118,53 @@ function AccordionItem({
           {faq.question}
         </span>
 
-        {/* Icon circle */}
-        <div
+        <span
           style={{
             width: 40,
             height: 40,
             borderRadius: "50%",
-            border: isOpen ? "1px solid #C4956A" : "1px solid rgba(26,21,18,0.12)",
-            background: isOpen ? "#C4956A" : "white",
+            border: `1px solid ${isOpen ? "#A83D0B" : "rgba(26,21,18,0.14)"}`,
+            background: isOpen ? "#A83D0B" : "white",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            transition: "all 0.3s ease",
+            transition: "background 0.3s ease, border-color 0.3s ease",
+            position: "relative",
+            zIndex: 1,
           }}
         >
           <motion.svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
+            width="16" height="16" viewBox="0 0 16 16" fill="none"
             animate={{ rotate: isOpen ? 45 : 0 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            transition={reduced ? { duration: 0.15 } : springRotate}
+            aria-hidden="true"
           >
-            <path
-              d="M8 3v10M3 8h10"
-              stroke={isOpen ? "white" : "#111111"}
-              strokeWidth="1.75"
-              strokeLinecap="round"
-            />
+            <path d="M8 3v10M3 8h10" stroke={isOpen ? "white" : "#1A1512"} strokeWidth="1.75" strokeLinecap="round" />
           </motion.svg>
-        </div>
-      </div>
+        </span>
+      </motion.button>
 
-      {/* Answer */}
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
+            id={panelId}
+            role="region"
+            aria-labelledby={buttonId}
             key="answer"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            transition={reduced ? { duration: 0.15 } : springSnappy}
             style={{ overflow: "hidden" }}
           >
             <p
               style={{
-                fontFamily: "Inter,sans-serif",
-                fontSize: "16px",
-                color: "#6B7280",
-                lineHeight: 1.7,
-                paddingTop: "16px",
-                paddingBottom: "8px",
-                maxWidth: "600px",
+                fontSize: "1rem",
+                color: "#57514B",
+                lineHeight: 1.68,
+                paddingBottom: 28,
+                maxWidth: "68ch",
               }}
             >
               {faq.answer}
@@ -174,100 +180,57 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const sectionRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, margin: "-80px" });
-
-  const containerVariants = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.08 } },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
-    },
-  };
-
-  const toggle = (i: number) => {
-    setOpenIndex((prev) => (prev === i ? null : i));
-  };
+  const reduced = useReducedMotion();
 
   return (
     <section
       ref={sectionRef}
-      style={{
-        backgroundColor: "#F5F0E8",
-        padding: "120px 0",
-        overflow: "hidden",
-      }}
-      aria-label="Frequently Asked Questions"
+      style={{ backgroundColor: "#F5F0E8", padding: "clamp(80px, 12vh, 120px) 0", overflow: "hidden" }}
+      aria-labelledby="faq-heading"
     >
-      <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 24px" }}>
-        {/* Header */}
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px" }}>
         <motion.div
           className="text-center"
-          initial={{ opacity: 0, y: 32 }}
+          initial={{ opacity: 0, y: reduced ? 0 : 28 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          transition={reveal}
         >
-          <p
-            style={{
-              fontFamily: "Inter,sans-serif",
-              fontSize: "12px",
-              fontWeight: 500,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "#C4956A",
-              marginBottom: "20px",
-            }}
-          >
+          <p style={{
+            fontSize: 12, fontWeight: 600, letterSpacing: "0.12em",
+            textTransform: "uppercase", color: "#A83D0B", marginBottom: 18,
+          }}>
             FAQ
           </p>
-          <h2
-            style={{
-              fontFamily: "Inter,sans-serif",
-              fontSize: "clamp(36px,5vw,56px)",
-              fontWeight: 700,
-              color: "#111111",
-              lineHeight: 1.1,
-              letterSpacing: "-0.025em",
-              marginBottom: "16px",
-            }}
-          >
+          <h2 id="faq-heading" style={{
+            fontSize: "clamp(2.25rem, 5vw, 3.5rem)", fontWeight: 700, color: "#1A1512",
+            lineHeight: 1.06, letterSpacing: "-0.03em", marginBottom: 16, textWrap: "balance",
+          }}>
             Questions we get{" "}
-            <span style={{ fontStyle: "italic", color: "#C4956A" }}>a lot.</span>
+            <span style={{ fontStyle: "italic", color: "#A83D0B" }}>a lot.</span>
           </h2>
-          <p
-            style={{
-              fontFamily: "Inter,sans-serif",
-              fontSize: "18px",
-              color: "#6B7280",
-              maxWidth: "480px",
-              margin: "0 auto",
-            }}
-          >
-            What FitVerse does, what it costs, and what we can and cannot
-            promise before launch.
+          <p style={{
+            fontSize: "clamp(1rem, 1.9vw, 1.125rem)", color: "#57514B",
+            maxWidth: "48ch", margin: "0 auto", lineHeight: 1.6, textWrap: "pretty",
+          }}>
+            What FitVerse does, what it costs, and what we can and cannot promise
+            before launch.
           </p>
         </motion.div>
 
-        {/* Accordion */}
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={inView ? "show" : "hidden"}
-          style={{ maxWidth: "720px", margin: "64px auto 0" }}
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ ...reveal, delay: 0.1 }}
+          style={{ maxWidth: 720, margin: "64px auto 0" }}
         >
           {faqs.map((faq, i) => (
-            <motion.div key={i} variants={itemVariants}>
-              <AccordionItem
-                faq={faq}
-                index={i}
-                isOpen={openIndex === i}
-                onToggle={() => toggle(i)}
-              />
-            </motion.div>
+            <AccordionItem
+              key={faq.question}
+              faq={faq}
+              index={i}
+              isOpen={openIndex === i}
+              onToggle={() => setOpenIndex((prev) => (prev === i ? null : i))}
+            />
           ))}
         </motion.div>
       </div>
