@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { resend } from "@/lib/resend";
-import { welcomeEmailHtml, welcomeEmailText } from "@/fitverse/app/privacy/email-templates";
+import { getResend, isEmailConfigured, fromAddress } from "@/lib/resend";
+import { welcomeEmailHtml, welcomeEmailText } from "@/lib/email-templates";
 
 // ─── Rate limiting (in-memory, per IP) ───────────────────────────────────────
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -141,19 +141,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send welcome email (non-blocking)
-    resend.emails
-      .send({
-        from: "FitVerse <hello@fitverse.app>",
-        to: email,
-        subject: "You're on the FitVerse waitlist 🎉",
-        html: welcomeEmailHtml(name),
-        text: welcomeEmailText(name),
-      })
-      .catch((err) => console.error("Resend error:", err));
+    /* The signup is already durable at this point. The welcome email is a
+       nice-to-have, so every failure below is swallowed into emailSent:false
+       rather than being surfaced as a failed signup. It is still awaited —
+       a fire-and-forget promise can be killed when the serverless function
+       returns, which silently drops the mail. */
+    let emailSent = false;
+    if (isEmailConfigured()) {
+      try {
+        const { error: mailError } = await getResend().emails.send({
+          from: fromAddress(),
+          to: email,
+          subject: "You're on the FitVerse waitlist 🎉",
+          html: welcomeEmailHtml(name),
+          text: welcomeEmailText(name),
+        });
+        if (mailError) console.error("Resend error:", mailError);
+        else emailSent = true;
+      } catch (err) {
+        console.error("Resend threw:", err);
+      }
+    } else {
+      console.warn("RESEND_API_KEY not set — skipping welcome email for", email);
+    }
 
     // Never return the inserted record
-    return NextResponse.json({ success: true }, { status: 201, headers });
+    return NextResponse.json({ success: true, emailSent }, { status: 201, headers });
   } catch (error) {
     console.error("Waitlist API error:", error);
     return NextResponse.json(
