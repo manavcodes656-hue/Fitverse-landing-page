@@ -63,11 +63,29 @@ export default function Footer() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), email: email.trim() }),
       });
-      const data = await res.json();
+      /* TEMP DEBUG — remove once the waitlist failure is diagnosed.
+         Read the raw text first: if the route dies before it can serialise
+         JSON, res.json() throws and the real body is lost. */
+      const raw = await res.text();
+      console.log("[waitlist] HTTP", res.status, res.statusText);
+      console.log("[waitlist] raw body:", raw);
+
+      let data: Record<string, unknown> = {};
+      try {
+        data = JSON.parse(raw);
+        console.log("[waitlist] parsed body:", data);
+      } catch {
+        console.error("[waitlist] body was not JSON");
+      }
+
       if (res.status === 409 || data.error === "duplicate") setFormState("duplicate");
       else if (res.ok && data.success) setFormState("success");
-      else setFormState("error");
-    } catch {
+      else {
+        console.error("[waitlist] FAILED — error:", data.error, "debug:", data.debug);
+        setFormState("error");
+      }
+    } catch (err) {
+      console.error("[waitlist] fetch/handler threw:", err);
       setFormState("error");
     }
   };

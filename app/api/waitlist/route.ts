@@ -124,6 +124,19 @@ export async function POST(request: NextRequest) {
       .insert({ name, email, source: "website", ip_hash: ipHash });
 
     if (dbError) {
+      /* TEMP DEBUG — remove once the waitlist failure is diagnosed.
+         Logged BEFORE the duplicate branch so every DB failure is visible.
+         .message alone is near-useless for PostgREST; code/details/hint are
+         what actually identify the failure. */
+      console.error("=== SUPABASE INSERT ERROR =======================");
+      console.error("message:", dbError.message);
+      console.error("code:   ", dbError.code);
+      console.error("details:", dbError.details);
+      console.error("hint:   ", dbError.hint);
+      console.error("full:   ", dbError);
+      console.error("json:   ", JSON.stringify(dbError, null, 2));
+      console.error("=================================================");
+
       if (
         dbError.code === "23505" ||
         dbError.message?.toLowerCase().includes("duplicate") ||
@@ -134,9 +147,9 @@ export async function POST(request: NextRequest) {
           { status: 409, headers }
         );
       }
-      console.error("Supabase insert error:", dbError.message);
       return NextResponse.json(
-        { success: false, error: "database_error" },
+        // TEMP DEBUG: `debug` is echoed to the browser. Remove before deploy.
+        { success: false, error: "database_error", debug: dbError },
         { status: 500, headers }
       );
     }
@@ -168,9 +181,31 @@ export async function POST(request: NextRequest) {
     // Never return the inserted record
     return NextResponse.json({ success: true, emailSent }, { status: 201, headers });
   } catch (error) {
-    console.error("Waitlist API error:", error);
+    // TEMP DEBUG — remove once the waitlist failure is diagnosed.
+    const err = error as Error & { cause?: unknown };
+    console.error("=== WAITLIST API THREW ==========================");
+    console.error("name:   ", err?.name);
+    console.error("message:", err?.message);
+    console.error("cause:  ", err?.cause);
+    console.error("stack:  ", err?.stack);
+    console.error("full:   ", error);
+    try {
+      console.error(
+        "json:   ",
+        JSON.stringify(error, Object.getOwnPropertyNames(Object(error)), 2)
+      );
+    } catch {
+      console.error("json:    <not serializable>");
+    }
+    console.error("=================================================");
+
     return NextResponse.json(
-      { success: false, error: "internal_error" },
+      {
+        success: false,
+        error: "internal_error",
+        // TEMP DEBUG: echoed to the browser. Remove before deploy.
+        debug: { name: err?.name, message: err?.message, stack: err?.stack },
+      },
       { status: 500, headers }
     );
   }
