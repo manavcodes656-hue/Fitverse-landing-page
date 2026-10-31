@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import {
   motion,
@@ -10,6 +10,7 @@ import {
   useMotionValueEvent,
   useReducedMotion,
 } from "framer-motion";
+import { ACCENT, INK, INK_DIM } from "@/lib/tokens";
 
 const panels: {
   number: string;
@@ -31,7 +32,7 @@ const panels: {
     image: "/module-ai-coach.png",
     imageAlt: "Training at home with the FitVerse AI Coach open on a phone",
     imageRight: true,
-    bg: "#FDFCF9",
+    bg: "var(--page-bg)",
     priority: true,
   },
   {
@@ -89,6 +90,130 @@ const panels: {
 const total = panels.length;
 
 export default function Modules() {
+  return (
+    <>
+      <ModulesPinned />
+      <ModulesCarousel />
+    </>
+  );
+}
+
+/* ── Under 1024px: a swipe carousel. ─────────────────────────────────────────
+   The pinned horizontal scroll needs a tall sticky frame, which is the wrong
+   shape on a phone. This is a native scroll-snap row instead: the browser owns
+   the gesture, so a vertical swipe keeps scrolling the page and a horizontal
+   one only commits once it clears the snap threshold. */
+function ModulesCarousel() {
+  const reduced = useReducedMotion();
+  const railRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    let raf = 0;
+    const texts = Array.from(rail.querySelectorAll<HTMLElement>("[data-mtext]"));
+    /* Mid-swipe two panels sit side by side. Each panel's text fades out as it
+       leaves the centre, so two panels' text is never readable at once and can
+       never collide at the seam. */
+    const fade = () => {
+      const pos = rail.scrollLeft / Math.max(1, rail.clientWidth);
+      texts.forEach((el, i) => { el.style.opacity = String(Math.max(0, 1 - Math.abs(pos - i) * 2)); });
+    };
+    const onScroll = () => {
+      fade();
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const i = Math.round(rail.scrollLeft / Math.max(1, rail.clientWidth));
+        setActive(Math.min(total - 1, Math.max(0, i)));
+      });
+    };
+    fade();
+    rail.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", fade);
+    return () => { rail.removeEventListener("scroll", onScroll); window.removeEventListener("resize", fade); cancelAnimationFrame(raf); };
+  }, []);
+
+  const goTo = (i: number) => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const n = Math.min(total - 1, Math.max(0, i));
+    rail.scrollTo({ left: n * rail.clientWidth, behavior: reduced ? "auto" : "smooth" });
+  };
+
+  return (
+    <section
+      className="lg:hidden"
+      aria-labelledby="modules-heading-m"
+      style={{ background: panels[active].bg, transition: "background-color 0.4s ease", padding: "calc(60px + 32px) 0 48px" }}
+    >
+      <h2 id="modules-heading-m" className="sr-only">The FitVerse modules</h2>
+      <div
+        ref={railRef}
+        role="group"
+        aria-roledescription="carousel"
+        aria-label="FitVerse modules"
+        className="fv-noscroll flex overflow-x-auto"
+        style={{ scrollSnapType: "x mandatory", overscrollBehaviorX: "contain", touchAction: "pan-x pan-y" }}
+      >
+        {panels.map((panel, i) => (
+          <article
+            key={panel.number}
+            aria-roledescription="slide"
+            aria-label={`${i + 1} of ${total}`}
+            className="fv-gutter flex-shrink-0 w-full"
+            style={{ scrollSnapAlign: "center", scrollSnapStop: "always", minWidth: 0, flex: "0 0 100%", overflow: "hidden" }}
+          >
+            <div className="mx-auto w-full" style={{ maxWidth: 520 }}>
+              <div
+                className="relative overflow-hidden"
+                style={{ aspectRatio: "4/5", borderRadius: 20, background: "#E8E3DC", boxShadow: "0 20px 50px rgba(26,21,18,0.13), 0 3px 10px rgba(26,21,18,0.07)" }}
+              >
+                {panel.image && (
+                  <Image src={panel.image} alt={panel.imageAlt} fill sizes="(max-width: 568px) 90vw, 520px" style={{ objectFit: "cover", objectPosition: "center" }} />
+                )}
+              </div>
+              <div data-mtext style={{ marginTop: 24, textAlign: "left", minWidth: 0 }}>
+                <span className="block leading-none select-none" style={{ fontFamily: "var(--font-head)", fontSize: 36, color: ACCENT, fontWeight: 600, letterSpacing: "-0.03em", marginBottom: 12 }}>
+                  {panel.number}
+                </span>
+                <h3 style={{ fontFamily: "var(--font-head)", fontSize: "clamp(26px, 7vw, 32px)", fontWeight: 600, color: INK, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 12 }}>
+                  {panel.name}
+                </h3>
+                <p style={{ fontFamily: "var(--font-body)", fontSize: 16, fontWeight: 500, color: INK, lineHeight: 1.35, letterSpacing: "-0.01em", marginBottom: 12 }}>
+                  {panel.subtitle}
+                </p>
+                <p style={{ fontFamily: "var(--font-body)", fontSize: 15.5, color: INK_DIM, lineHeight: 1.55, maxWidth: "42ch" }}>
+                  {panel.description}
+                </p>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="fvm-controls">
+        <button type="button" onClick={() => goTo(active - 1)} disabled={active === 0} aria-label="Previous module"
+          className="fvm-arrow" style={{ opacity: active === 0 ? 0.4 : 1 }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+        <div className="fvm-dots" role="tablist" aria-label="Module navigation">
+          {panels.map((panel, i) => (
+            <button key={panel.number} type="button" role="tab" aria-selected={active === i} aria-label={panel.name} onClick={() => goTo(i)} className="fvm-dot">
+              <span />
+            </button>
+          ))}
+        </div>
+        <button type="button" onClick={() => goTo(active + 1)} disabled={active === total - 1} aria-label="Next module"
+          className="fvm-arrow" style={{ opacity: active === total - 1 ? 0.4 : 1 }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ModulesPinned() {
   const reduced = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
@@ -134,7 +259,7 @@ export default function Modules() {
     <section
       id="modules"
       ref={sectionRef}
-      className="relative"
+      className="relative hidden lg:block"
       style={{ height: `${(total + 1) * 100}vh` }}
       aria-labelledby="modules-heading"
     >
@@ -177,9 +302,10 @@ export default function Modules() {
                       <span
                         className="font-extrabold leading-none mb-4 select-none"
                         style={{
-                          fontSize: "clamp(48px, 6vw, 72px)",
-                          color: "#A83D0B",
-                          fontWeight: 800,
+                          fontFamily: "var(--font-head)",
+                          fontSize: 44,
+                          color: ACCENT,
+                          fontWeight: 600,
                           letterSpacing: "-0.03em",
                         }}
                       >
@@ -187,11 +313,12 @@ export default function Modules() {
                       </span>
                       <h3
                         style={{
-                          fontSize: "clamp(32px, 4vw, 48px)",
-                          fontWeight: 700,
-                          color: "#1A1512",
+                          fontFamily: "var(--font-head)",
+                          fontSize: 30,
+                          fontWeight: 600,
+                          color: INK,
                           lineHeight: 1.08,
-                          letterSpacing: "-0.025em",
+                          letterSpacing: "-0.02em",
                           marginBottom: "12px",
                         }}
                       >
@@ -199,9 +326,10 @@ export default function Modules() {
                       </h3>
                       <p
                         style={{
-                          fontSize: "clamp(17px, 1.8vw, 19px)",
-                          fontWeight: 600,
-                          color: "#1A1512",
+                          fontFamily: "var(--font-body)",
+                          fontSize: 16,
+                          fontWeight: 500,
+                          color: INK,
                           lineHeight: 1.35,
                           letterSpacing: "-0.01em",
                           marginBottom: "16px",
@@ -211,9 +339,11 @@ export default function Modules() {
                       </p>
                       <p
                         style={{
-                          fontSize: "16px",
-                          color: "#57514B",
-                          lineHeight: 1.65,
+                          fontFamily: "var(--font-body)",
+                          fontWeight: 400,
+                          fontSize: 15.5,
+                          color: INK_DIM,
+                          lineHeight: 1.55,
                           maxWidth: "42ch",
                         }}
                       >
@@ -323,7 +453,7 @@ export default function Modules() {
                 className="block rounded-full"
                 animate={{
                   width: active === i ? 26 : 8,
-                  backgroundColor: active === i ? "#A83D0B" : "#BFB6AA",
+                  backgroundColor: active === i ? ACCENT : "#BFB6AA",
                 }}
                 transition={{ type: "spring", bounce: 0, duration: 0.3 }}
                 style={{ height: 8 }}

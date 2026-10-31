@@ -1,3 +1,14 @@
+/* The name is user input and the email goes to an address the user typed, so
+   it must never reach the HTML unescaped. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export function welcomeEmailHtml(name: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -152,7 +163,7 @@ export function welcomeEmailHtml(name: string): string {
 
     <div class="body">
       <div class="badge">Waitlist Confirmed</div>
-      <h1>Hey ${name}, you're in. 🎉</h1>
+      <h1>Hey ${escapeHtml(name)}, you're in. 🎉</h1>
       <p>
         Welcome to the FitVerse waitlist. You're among the first to know when we launch — and we'll make sure it's worth the wait.
       </p>

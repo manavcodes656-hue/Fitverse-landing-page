@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useId } from "react";
-import { motion, AnimatePresence, useInView, useReducedMotion } from "framer-motion";
-import { springSnappy, springRotate, reveal } from "@/lib/motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { springSnappy, springRotate, reveal, useInViewSafe } from "@/lib/motion";
+import { ACCENT, INK, INK_DIM } from "@/lib/tokens";
 
 const faqs = [
   {
@@ -68,7 +69,7 @@ function AccordionItem({
         aria-controls={panelId}
         whileTap={reduced ? undefined : { scale: 0.995 }}
         transition={springSnappy}
-        className="relative w-full text-left"
+        className="faq-row relative w-full text-left"
         style={{
           padding: "28px 0",
           display: "flex",
@@ -87,14 +88,16 @@ function AccordionItem({
             display-sized numeral this replaces. */}
         <span
           aria-hidden="true"
+          className="faq-num"
           style={{
             width: 34,
             flexShrink: 0,
-            fontSize: 13,
-            fontWeight: 500,
+            fontFamily: "var(--font-body)",
+            fontSize: 12,
+            fontWeight: 400,
             fontVariantNumeric: "tabular-nums lining-nums",
             letterSpacing: "0.08em",
-            color: isOpen ? "#A83D0B" : "#6B6560",
+            color: isOpen ? ACCENT : "#6B6560",
             transition: "color 0.2s ease",
             userSelect: "none",
           }}
@@ -102,13 +105,14 @@ function AccordionItem({
           {num}
         </span>
 
-        <span
+        <span className="faq-q"
           style={{
-            fontSize: "clamp(1rem, 1.9vw, 1.125rem)",
+            fontFamily: "var(--font-head)",
+            fontSize: 17,
             fontWeight: 600,
             /* The old amber measured roughly 2.6:1 on the cream surface — the open
                state used to be less readable than the closed one. */
-            color: isOpen ? "#A83D0B" : "#1A1512",
+            color: isOpen ? ACCENT : INK,
             lineHeight: 1.4,
             letterSpacing: "-0.015em",
             transition: "color 0.2s ease",
@@ -123,8 +127,8 @@ function AccordionItem({
             width: 40,
             height: 40,
             borderRadius: "50%",
-            border: `1px solid ${isOpen ? "#A83D0B" : "rgba(26,21,18,0.14)"}`,
-            background: isOpen ? "#A83D0B" : "white",
+            border: `1px solid ${isOpen ? ACCENT : "rgba(26,21,18,0.14)"}`,
+            background: isOpen ? ACCENT : "white",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -140,7 +144,7 @@ function AccordionItem({
             transition={reduced ? { duration: 0.15 } : springRotate}
             aria-hidden="true"
           >
-            <path d="M8 3v10M3 8h10" stroke={isOpen ? "white" : "#1A1512"} strokeWidth="1.75" strokeLinecap="round" />
+            <path d="M8 3v10M3 8h10" stroke={isOpen ? "white" : INK} strokeWidth="1.75" strokeLinecap="round" />
           </motion.svg>
         </span>
       </motion.button>
@@ -158,11 +162,13 @@ function AccordionItem({
             transition={reduced ? { duration: 0.15 } : springSnappy}
             style={{ overflow: "hidden" }}
           >
-            <p
+            <p className="faq-a"
               style={{
-                fontSize: "1rem",
-                color: "#57514B",
-                lineHeight: 1.68,
+                fontFamily: "var(--font-body)",
+                fontWeight: 400,
+                fontSize: 15.5,
+                color: INK_DIM,
+                lineHeight: 1.6,
                 paddingBottom: 28,
                 maxWidth: "68ch",
               }}
@@ -179,38 +185,34 @@ function AccordionItem({
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const sectionRef = useRef(null);
-  const inView = useInView(sectionRef, { once: true, margin: "-80px" });
+  const inView = useInViewSafe(sectionRef, { once: true, margin: "-80px" });
   const reduced = useReducedMotion();
 
   return (
     <section
       ref={sectionRef}
-      style={{ backgroundColor: "#F5F0E8", padding: "clamp(80px, 12vh, 120px) 0", overflow: "hidden" }}
+      style={{ backgroundColor: "var(--page-bg)", padding: "clamp(80px, 12vh, 120px) 0 100px", overflow: "hidden" }}
       aria-labelledby="faq-heading"
     >
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px" }}>
+      <div className="faq-wrap" style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px" }}>
         <motion.div
           className="text-center"
           initial={{ opacity: 0, y: reduced ? 0 : 28 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={reveal}
         >
-          <p style={{
-            fontSize: 12, fontWeight: 600, letterSpacing: "0.12em",
-            textTransform: "uppercase", color: "#A83D0B", marginBottom: 18,
-          }}>
+          <p className="t-eyebrow" style={{ color: ACCENT, marginBottom: 18 }}>
             FAQ
           </p>
-          <h2 id="faq-heading" style={{
-            fontSize: "clamp(2.25rem, 5vw, 3.5rem)", fontWeight: 700, color: "#1A1512",
-            lineHeight: 1.06, letterSpacing: "-0.03em", marginBottom: 16, textWrap: "balance",
+          <h2 id="faq-heading" className="t-section-title faq-title" style={{
+            color: INK, marginBottom: 16, textWrap: "balance",
           }}>
             Questions we get{" "}
-            <span style={{ fontStyle: "italic", color: "#A83D0B" }}>a lot.</span>
+            <span className="t-accent" style={{ color: ACCENT, whiteSpace: "nowrap" }}>a lot.</span>
           </h2>
-          <p style={{
-            fontSize: "clamp(1rem, 1.9vw, 1.125rem)", color: "#57514B",
-            maxWidth: "48ch", margin: "0 auto", lineHeight: 1.6, textWrap: "pretty",
+          <p className="t-lede" style={{
+            color: INK_DIM,
+            maxWidth: "48ch", margin: "0 auto", textWrap: "pretty",
           }}>
             What FitVerse does, what it costs, and what we can and cannot promise
             before launch.
@@ -221,6 +223,7 @@ export default function FAQ() {
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ ...reveal, delay: 0.1 }}
+          className="faq-list"
           style={{ maxWidth: 720, margin: "64px auto 0" }}
         >
           {faqs.map((faq, i) => (

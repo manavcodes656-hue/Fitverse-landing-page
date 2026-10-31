@@ -322,14 +322,7 @@ function FloatingIcon({
 }
 
 
-export default function IntroAnimation({
-  /** Set false while reviewing so it replays on every mount. */
-  oncePerSession = true,
-  onDone,
-}: {
-  oncePerSession?: boolean;
-  onDone?: () => void;
-}) {
+export default function IntroAnimation() {
   const reduced = useReducedMotion();
   const [visible, setVisible] = useState(true);
   const [phase, setPhase] = useState<Phase>("float");
@@ -346,7 +339,6 @@ export default function IntroAnimation({
 
   /* Before paint, so a returning visitor never sees a frame of this. */
   useLayoutEffect(() => {
-    if (!oncePerSession) return;
     try {
       if (sessionStorage.getItem(SESSION_KEY)) {
         setVisible(false);
@@ -355,7 +347,7 @@ export default function IntroAnimation({
     } catch {
       /* storage blocked — show it */
     }
-  }, [oncePerSession]);
+  }, []);
 
   const finish = useCallback(() => {
     if (finished.current) return;
@@ -364,8 +356,7 @@ export default function IntroAnimation({
     timers.current = [];
     try { sessionStorage.setItem(SESSION_KEY, "1"); } catch { /* ignore */ }
     setVisible(false);
-    onDone?.();
-  }, [onDone]);
+  }, []);
 
   /* Tap anywhere, or any key, goes straight to the site. Five seconds is a
      long time to hold someone away from what they came for — the escape
@@ -429,6 +420,7 @@ export default function IntroAnimation({
       {visible && (
         <motion.div
           key="intro"
+          data-intro
           /* Decorative and short-lived — a screen reader should get the page,
              not a countdown it cannot act on. */
           aria-hidden="true"

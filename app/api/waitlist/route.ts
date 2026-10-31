@@ -3,163 +3,140 @@ import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { getResend, isEmailConfigured, fromAddress } from "@/lib/resend";
 import { welcomeEmailHtml, welcomeEmailText } from "@/lib/email-templates";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 
-// ─── Rate limiting (in-memory, per IP) ───────────────────────────────────────
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 3;
-const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+/* The waitlist endpoint is same-origin only: the form on this site is its one
+   caller. Clients only ever see generic errors; details go to the server log. */
 
-function checkRateLimit(ipHash: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ipHash);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ipHash, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return true;
+const MAX_BODY_BYTES = 2048;
+
+// ─── IP hash salt ─────────────────────────────────────────────────────────────
+/* The salt keeps stored IP hashes from being reversed by brute force. There is
+   no fallback in production: a missing salt must stop the route, not weaken it.
+   (Not enforced during `next build`, which imports this module without runtime
+   secrets; the first request on a misconfigured server still fails.) */
+const DEV_SALT = "dev-only-salt-do-not-use-in-production";
+
+function loadSalt(): string {
+  const salt = process.env.IP_HASH_SALT;
+  if (salt) return salt;
+  const building = process.env.NEXT_PHASE === "phase-production-build";
+  if (process.env.NODE_ENV === "production" && !building) {
+    throw new Error("IP_HASH_SALT is not set. Set it to a long random string in the production environment.");
   }
-  if (entry.count >= RATE_LIMIT) return false;
-  entry.count++;
-  return true;
+  if (!building) console.warn("IP_HASH_SALT is not set; using a development-only salt.");
+  return DEV_SALT;
 }
 
-// ─── Hash IP with SHA-256 ─────────────────────────────────────────────────────
+const IP_SALT = loadSalt();
+
 async function hashIP(ip: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const salt = process.env.IP_HASH_SALT ?? "fitverse-salt";
-  const data = encoder.encode(ip + salt);
+  const data = new TextEncoder().encode(ip + IP_SALT);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// ─── Validation schema ────────────────────────────────────────────────────────
+/* x-real-ip is set by the platform proxy; the first x-forwarded-for entry is
+   only trustworthy behind a proxy that overwrites it (Vercel does). */
+function clientIp(request: NextRequest): string {
+  return (
+    request.headers.get("x-real-ip") ??
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "unknown"
+  );
+}
+
+// ─── Validation ───────────────────────────────────────────────────────────────
 const waitlistSchema = z.object({
-  name: z
-    .string()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name is too long")
-    .trim(),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .max(255, "Email is too long")
-    .toLowerCase()
-    .trim(),
+  /* No control characters and no angle brackets: a name has no use for them. */
+  name: z.string().trim().min(2).max(80).regex(/^[^\u0000-\u001F\u007F<>]+$/),
+  email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
 });
 
-// ─── CORS / security headers ──────────────────────────────────────────────────
-function secureHeaders(origin: string | null): Record<string, string> {
-  const allowedOrigins = [
-    process.env.NEXT_PUBLIC_SITE_URL ?? "",
-    "http://localhost:3000",
-    "http://localhost:3001",
-  ].filter(Boolean);
+// ─── Responses ────────────────────────────────────────────────────────────────
+const SECURITY_HEADERS = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" };
 
-  const isAllowed = !origin || allowedOrigins.some((o) => origin.startsWith(o));
-
-  return {
-    "Access-Control-Allow-Origin": isAllowed ? (origin ?? "*") : "null",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
-  };
+/* New signups, duplicates and honeypot hits all return exactly this, so the
+   response never reveals whether an address is already registered. */
+function ok() {
+  return NextResponse.json({ success: true }, { status: 200, headers: SECURITY_HEADERS });
 }
 
-// ─── OPTIONS (preflight) ──────────────────────────────────────────────────────
-export async function OPTIONS(request: NextRequest) {
-  return new NextResponse(null, {
-    status: 204,
-    headers: secureHeaders(request.headers.get("origin")),
-  });
+function fail(status: number, error: string) {
+  return NextResponse.json({ success: false, error }, { status, headers: SECURITY_HEADERS });
+}
+
+/* Same-origin check: a browser always sends Origin on a cross-site POST. */
+function isSameOrigin(request: NextRequest): boolean {
+  const origin = request.headers.get("origin");
+  if (!origin) return true; // non-browser client; the rate limit still applies
+  try {
+    return new URL(origin).host === request.headers.get("host");
+  } catch {
+    return false;
+  }
+}
+
+/* Reads the body with a hard size cap, whatever Content-Length claims. */
+async function readJson(request: NextRequest): Promise<unknown | undefined> {
+  const declared = Number(request.headers.get("content-length") ?? 0);
+  if (declared > MAX_BODY_BYTES) return undefined;
+  const text = await request.text();
+  if (text.length > MAX_BODY_BYTES) return undefined;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
 }
 
 // ─── POST ─────────────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  const headers = secureHeaders(origin);
-
   try {
-    // Get IP
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      request.headers.get("x-real-ip") ??
-      "unknown";
+    if (!isSameOrigin(request)) return fail(403, "forbidden");
+    if (!request.headers.get("content-type")?.includes("application/json")) return fail(415, "invalid_request");
 
+    const ip = clientIp(request);
     const ipHash = await hashIP(ip);
+    const rate = await checkRateLimit(ipHash);
+    if (rate === "limited") return fail(429, "rate_limited");
+    if (rate === "unavailable") return fail(503, "unavailable");
 
-    // Rate limit
-    if (!checkRateLimit(ipHash)) {
-      return NextResponse.json(
-        { success: false, error: "Too many requests. Please try again later." },
-        { status: 429, headers }
-      );
+    const body = await readJson(request);
+    if (body === undefined || typeof body !== "object" || body === null) return fail(400, "invalid_request");
+
+    /* Honeypot: humans never see this field. A bot that fills it gets the
+       identical success response, and nothing is stored. */
+    const fields = body as Record<string, unknown>;
+    if (typeof fields.website === "string" && fields.website.trim() !== "") {
+      console.warn("waitlist: honeypot filled, submission dropped");
+      return ok();
     }
 
-    // Parse body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { success: false, error: "Invalid request body" },
-        { status: 400, headers }
-      );
-    }
+    const parsed = waitlistSchema.safeParse(body);
+    if (!parsed.success) return fail(422, "validation");
+    const { name, email } = parsed.data;
 
-    // Validate
-    const result = waitlistSchema.safeParse(body);
-    if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: "validation", details: result.error.flatten().fieldErrors },
-        { status: 422, headers }
-      );
-    }
+    /* Bot check, before any database or email work. */
+    const human = await verifyTurnstile(fields.turnstileToken, ip);
+    if (human === "invalid") return fail(422, "validation");
+    if (human === "unavailable") return fail(503, "unavailable");
 
-    const { name, email } = result.data;
-
-    // Insert into Supabase via service role (bypasses RLS)
-    const db = getSupabaseAdmin();
-    const { error: dbError } = await db
+    const { error: dbError } = await getSupabaseAdmin()
       .from("waitlist")
       .insert({ name, email, source: "website", ip_hash: ipHash });
 
     if (dbError) {
-      /* TEMP DEBUG — remove once the waitlist failure is diagnosed.
-         Logged BEFORE the duplicate branch so every DB failure is visible.
-         .message alone is near-useless for PostgREST; code/details/hint are
-         what actually identify the failure. */
-      console.error("=== SUPABASE INSERT ERROR =======================");
-      console.error("message:", dbError.message);
-      console.error("code:   ", dbError.code);
-      console.error("details:", dbError.details);
-      console.error("hint:   ", dbError.hint);
-      console.error("full:   ", dbError);
-      console.error("json:   ", JSON.stringify(dbError, null, 2));
-      console.error("=================================================");
-
-      if (
-        dbError.code === "23505" ||
-        dbError.message?.toLowerCase().includes("duplicate") ||
-        dbError.message?.toLowerCase().includes("unique")
-      ) {
-        return NextResponse.json(
-          { success: false, error: "duplicate" },
-          { status: 409, headers }
-        );
-      }
-      return NextResponse.json(
-        // TEMP DEBUG: `debug` is echoed to the browser. Remove before deploy.
-        { success: false, error: "database_error", debug: dbError },
-        { status: 500, headers }
-      );
+      /* Already registered: answer exactly like a new signup and send no email. */
+      if (dbError.code === "23505") return ok();
+      console.error("waitlist: insert failed", { code: dbError.code, message: dbError.message });
+      return fail(500, "server_error");
     }
 
-    /* The signup is already durable at this point. The welcome email is a
-       nice-to-have, so every failure below is swallowed into emailSent:false
-       rather than being surfaced as a failed signup. It is still awaited —
-       a fire-and-forget promise can be killed when the serverless function
-       returns, which silently drops the mail. */
-    let emailSent = false;
+    /* The signup is already durable. The welcome email is a nice-to-have, so
+       its failure never fails the signup. It is awaited because a
+       fire-and-forget promise can be killed when a serverless function returns. */
     if (isEmailConfigured()) {
       try {
         const { error: mailError } = await getResend().emails.send({
@@ -169,48 +146,21 @@ export async function POST(request: NextRequest) {
           html: welcomeEmailHtml(name),
           text: welcomeEmailText(name),
         });
-        if (mailError) console.error("Resend error:", mailError);
-        else emailSent = true;
+        if (mailError) console.error("waitlist: email rejected", mailError.name);
       } catch (err) {
-        console.error("Resend threw:", err);
+        console.error("waitlist: email threw", err instanceof Error ? err.message : "unknown");
       }
     } else {
-      console.warn("RESEND_API_KEY not set — skipping welcome email for", email);
+      console.warn("waitlist: RESEND_API_KEY not set, welcome email skipped");
     }
 
-    // Never return the inserted record
-    return NextResponse.json({ success: true, emailSent }, { status: 201, headers });
-  } catch (error) {
-    // TEMP DEBUG — remove once the waitlist failure is diagnosed.
-    const err = error as Error & { cause?: unknown };
-    console.error("=== WAITLIST API THREW ==========================");
-    console.error("name:   ", err?.name);
-    console.error("message:", err?.message);
-    console.error("cause:  ", err?.cause);
-    console.error("stack:  ", err?.stack);
-    console.error("full:   ", error);
-    try {
-      console.error(
-        "json:   ",
-        JSON.stringify(error, Object.getOwnPropertyNames(Object(error)), 2)
-      );
-    } catch {
-      console.error("json:    <not serializable>");
-    }
-    console.error("=================================================");
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: "internal_error",
-        // TEMP DEBUG: echoed to the browser. Remove before deploy.
-        debug: { name: err?.name, message: err?.message, stack: err?.stack },
-      },
-      { status: 500, headers }
-    );
+    return ok();
+  } catch (err) {
+    console.error("waitlist: unhandled", err instanceof Error ? err.message : "unknown");
+    return fail(500, "server_error");
   }
 }
 
 export async function GET() {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405, headers: { Allow: "POST" } });
 }

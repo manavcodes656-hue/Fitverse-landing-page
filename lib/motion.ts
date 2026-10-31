@@ -29,9 +29,6 @@ export const spring: Transition = { type: "spring", bounce: 0, duration: 0.4 };
 /** Snappier critically damped spring — small elements, icons, chips. */
 export const springSnappy: Transition = { type: "spring", bounce: 0, duration: 0.28 };
 
-/** Momentum release: only after a flick, drag-release or swipe. */
-export const springMomentum: Transition = { type: "spring", bounce: 0.2, duration: 0.4 };
-
 /** Drawers, sheets, modals. Apple ships damping 0.8 / response 0.3 here. */
 export const springSheet: Transition = { type: "spring", bounce: 0.2, duration: 0.3 };
 
@@ -42,28 +39,6 @@ export const springRotate: Transition = { type: "spring", bounce: 0.2, duration:
 
 /** Scroll-triggered reveals. Not interruptible by design — nothing grabs these. */
 export const reveal: Transition = { duration: 0.55, ease: [0.16, 1, 0.3, 1] };
-
-/** The reduced-motion substitute: a short cross-fade, no travel. */
-export const crossFade: Transition = { duration: 0.2, ease: "easeOut" };
-
-/* ── Reduced motion ──────────────────────────────────────────────────────── */
-
-/**
- * Reduced motion does not mean *no* feedback — it means a gentler,
- * non-vestibular equivalent. Swap travel for opacity, drop overshoot,
- * keep the state change legible.
- */
-export function motionSafe(t: Transition, reduced: boolean | null): Transition {
-  return reduced ? crossFade : t;
-}
-
-/** Strip positional travel from a variant when the user asked for less motion. */
-export function offsetSafe<T extends Record<string, unknown>>(
-  offset: T,
-  reduced: boolean | null
-): T | Record<string, never> {
-  return reduced ? {} : offset;
-}
 
 /* ── Momentum projection ─────────────────────────────────────────────────── */
 
@@ -80,14 +55,6 @@ export function offsetSafe<T extends Record<string, unknown>>(
  */
 export function project(velocity: number, decelerationRate = 0.998): number {
   return ((velocity / 1000) * decelerationRate) / (1 - decelerationRate);
-}
-
-/**
- * Progressive resistance past a boundary. A hard stop reads as "frozen";
- * continuous resistance reads as "responsive, but there is nothing more here".
- */
-export function rubberband(overshoot: number, dimension: number, constant = 0.55): number {
-  return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
 }
 
 /** Tracks recent pointer samples so a gesture can hand its velocity to a spring. */
@@ -113,4 +80,25 @@ export class VelocityTracker {
   reset() {
     this.samples = [];
   }
+}
+
+/* ── Reveal safety ───────────────────────────────────────────────────────────
+   useInView with a backstop: if the observer never fires (a hidden tab, an
+   embedded webview, a layout that never intersects), the content is shown after
+   `ms` rather than left at opacity 0. Same 7s the hero uses. */
+import { useEffect, useState, type RefObject } from "react";
+import { useInView } from "framer-motion";
+
+export function useInViewSafe(
+  ref: RefObject<Element | null>,
+  options: { once?: boolean; margin?: string } = {},
+  ms = 7000
+): boolean {
+  const seen = useInView(ref, options as Parameters<typeof useInView>[1]);
+  const [late, setLate] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setLate(true), ms);
+    return () => clearTimeout(id);
+  }, [ms]);
+  return seen || late;
 }

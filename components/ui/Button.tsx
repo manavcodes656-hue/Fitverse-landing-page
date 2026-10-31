@@ -25,6 +25,7 @@
 import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import { springSnappy } from "@/lib/motion";
 import type { CSSProperties, ReactNode } from "react";
+import { ACCENT, INK } from "@/lib/tokens";
 
 export type ButtonVariant = "primary" | "accent" | "secondary" | "ghost" | "icon";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -49,23 +50,23 @@ function palette(variant: ButtonVariant, ground: ButtonGround): Palette {
   switch (variant) {
     case "primary":
       return dark
-        ? { bg: "#FDFCF9", fg: "#1A1512", hoverBg: "#FFFFFF", shadow: "0 1px 2px rgba(0,0,0,0.18)" }
-        : { bg: "#1A1512", fg: "#FDFCF9", hoverBg: "#2A2521", shadow: "0 1px 2px rgba(26,21,18,0.16)" };
+        ? { bg: "#FDFCF9", fg: INK, hoverBg: "#FFFFFF", shadow: "0 1px 2px rgba(0,0,0,0.18)" }
+        : { bg: INK, fg: "#FDFCF9", hoverBg: "#2A2521", shadow: "0 1px 2px rgba(26,21,18,0.16)" };
     /* The single sanctioned accent button. It exists so the highlighted
        pricing plan can carry the accent without every other primary on the
        site reaching for it. Hover is a tint of the same orange, the way the
        ink primary tints to #2A2521. */
     case "accent":
-      return { bg: "#A83D0B", fg: "#FDFCF9", hoverBg: "#C2470D", shadow: "0 1px 2px rgba(26,21,18,0.16)" };
+      return { bg: ACCENT, fg: "#FDFCF9", hoverBg: "#C2470D", shadow: "0 1px 2px rgba(26,21,18,0.16)" };
     case "secondary":
     case "icon":
       return dark
         ? { bg: "rgba(255,255,255,0.12)", fg: "#FDFCF9", hoverBg: "rgba(255,255,255,0.19)" }
-        : { bg: "rgba(26,21,18,0.05)", fg: "#1A1512", hoverBg: "rgba(26,21,18,0.09)" };
+        : { bg: "rgba(26,21,18,0.05)", fg: INK, hoverBg: "rgba(26,21,18,0.09)" };
     case "ghost":
       return dark
         ? { bg: "transparent", fg: "rgba(255,255,255,0.85)", hoverBg: "rgba(255,255,255,0.10)" }
-        : { bg: "transparent", fg: "#1A1512", hoverBg: "rgba(26,21,18,0.05)" };
+        : { bg: "transparent", fg: INK, hoverBg: "rgba(26,21,18,0.05)" };
   }
 }
 
@@ -111,6 +112,7 @@ export default function Button({
     /* One radius for every button on the site. */
     borderRadius: 999,
     border: "none",
+    fontFamily: "var(--font-head)",
     cursor: disabled ? "not-allowed" : "pointer",
     background: p.bg,
     color: p.fg,

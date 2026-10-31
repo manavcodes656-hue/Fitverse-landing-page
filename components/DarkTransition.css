@@ -1,0 +1,11 @@
+  .fvt{
+    /* same black as the waitlist section, so the last stop has no seam */
+    --bg:#121110;
+    height:200px;pointer-events:none;
+  }
+
+  @media (max-width:767px){
+    /* 160px, plain cream to #121110. It overlaps the section above and below by
+       1px each, so a fractional-pixel layout can never open a gap between them. */
+    .fvt{height:160px;margin-block:-1px;position:relative}
+  }

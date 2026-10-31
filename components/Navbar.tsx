@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { springSheet, springSnappy } from "@/lib/motion";
 import Button from "@/components/ui/Button";
+import { INK } from "@/lib/tokens";
 
 /* ── Nav control spec ─────────────────────────────────────────────────────────
    One height and one radius for every control in the bar. Previously the row
@@ -18,28 +19,6 @@ import Button from "@/components/ui/Button";
    "Google Play" run wider than "App Store". */
 const NAV_BADGE_H = 40;
 const NAV_BADGE_W = 134;
-const NAV_PILL = 999;
-
-/* The drawer's nav rows: a ghost button that reads at reading size and aligns
-   left. DRAWER_LINK_BASE supplies the box for the one row that stays a
-   next/link rather than a Button, so the three rows stay identical. */
-const DRAWER_LINK = {
-  justifyContent: "flex-start" as const,
-  fontSize: 19,
-  fontWeight: 500,
-  letterSpacing: "-0.015em",
-  paddingLeft: 12,
-  paddingRight: 12,
-  color: "#1A1512",
-};
-const DRAWER_LINK_BASE = {
-  display: "flex" as const,
-  alignItems: "center" as const,
-  height: 52,
-  width: "100%",
-  borderRadius: NAV_PILL,
-  textDecoration: "none" as const,
-};
 
 /* ── Focus containment ────────────────────────────────────────────────────────
    Overlays must not leak focus to the page behind them, and must hand focus
@@ -243,15 +222,15 @@ function StoreBadge({ store, scrolled }: { store: "apple" | "google"; scrolled: 
         )}
         <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
           {store === "apple" ? (
-            <span style={{ fontSize: 8.5, fontWeight: 500, lineHeight: 1, color: "rgba(255,255,255,0.9)", letterSpacing: "0.01em" }}>
+            <span style={{ fontFamily: "var(--font-head)", fontSize: 8.5, fontWeight: 500, lineHeight: 1, color: "rgba(255,255,255,0.9)", letterSpacing: "0.01em" }}>
               Download on the
             </span>
           ) : (
-            <span style={{ fontSize: 8, fontWeight: 500, lineHeight: 1, color: "rgba(255,255,255,0.9)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            <span style={{ fontFamily: "var(--font-head)", fontSize: 8, fontWeight: 500, lineHeight: 1, color: "rgba(255,255,255,0.9)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
               Get it on
             </span>
           )}
-          <span style={{ fontSize: 14.5, fontWeight: 600, lineHeight: 1.15, color: "#fff", letterSpacing: "-0.015em", whiteSpace: "nowrap" }}>
+          <span style={{ fontFamily: "var(--font-head)", fontSize: 14, fontWeight: 600, lineHeight: 1.15, color: "#fff", letterSpacing: "-0.015em", whiteSpace: "nowrap" }}>
             {label}
           </span>
         </span>
@@ -273,8 +252,9 @@ function StoreBadge({ store, scrolled }: { store: "apple" | "google"; scrolled: 
               translateX: "-50%",
               padding: "5px 10px",
               borderRadius: 8,
-              background: "#1A1512",
+              background: INK,
               color: "#FDFCF9",
+              fontFamily: "var(--font-head)",
               fontSize: 11.5,
               fontWeight: 600,
               letterSpacing: "0.01em",
@@ -302,7 +282,22 @@ export default function Navbar() {
   const pathname = usePathname();
 
   const closeDrawer = useCallback(() => setMobileOpen(false), []);
-  const drawerRef = useFocusTrap(mobileOpen, closeDrawer);
+
+  /* Escape closes the dropdown. Outside taps are caught by its backdrop. */
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMobileOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
+
+  /* The dropdown is a phone/tablet control; if the window grows past it, close. */
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => { if (mq.matches) setMobileOpen(false); };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen || pricingOpen ? "hidden" : "";
@@ -345,7 +340,7 @@ export default function Navbar() {
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[300] focus:px-4 focus:py-2 focus:rounded-full"
-        style={{ background: "#1A1512", color: "#FDFCF9", fontSize: 14, fontWeight: 600 }}
+        style={{ background: INK, color: "#FDFCF9", fontSize: 14, fontWeight: 600 }}
       >
         Skip to content
       </a>
@@ -357,14 +352,15 @@ export default function Navbar() {
         className={scrolled ? "nav-scrolled mat-thin" : ""}
         style={{
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
+          paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)",
           transition: "background 0.3s ease, border-color 0.3s ease",
           background: scrolled ? undefined : "transparent",
           borderBottom: scrolled ? undefined : "1px solid transparent",
         }}
         aria-label="Main navigation"
       >
-        <div className="max-w-7xl mx-auto px-8 h-[72px] flex items-center justify-between relative">
-          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 z-10 rounded-lg">
+        <div className="max-w-7xl mx-auto px-5 md:px-8 h-[60px] lg:h-[72px] flex items-center justify-between relative">
+          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 z-10 rounded-lg min-h-[44px]">
             <span style={{
               width: 28, height: 28, borderRadius: 8, overflow: "hidden",
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -375,14 +371,15 @@ export default function Navbar() {
               <Image src="/logo.jpeg" alt="" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </span>
             <span style={{
-              fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em",
-              color: scrolled ? "#1A1512" : "white", transition: "color 0.3s ease",
+              fontFamily: "var(--font-head)",
+              fontSize: 15, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase",
+              color: scrolled ? INK : "white", transition: "color 0.3s ease",
             }}>
               FitVerse
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2 gap-12">
+          <div className="hidden lg:flex items-center justify-center absolute left-1/2 -translate-x-1/2 gap-12">
             <button onClick={scrollToHome} className={`nav-link ${pathname === "/" ? "nav-link-active" : ""}`}>
               About
             </button>
@@ -394,7 +391,7 @@ export default function Navbar() {
             </button>
           </div>
 
-          <div className="hidden md:flex items-center ml-auto z-10" style={{ gap: 20 }}>
+          <div className="hidden lg:flex items-center ml-auto z-10" style={{ gap: 20 }}>
             {/* Badges are xl-only: between md and xl the absolutely-centred
                 nav links and this right cluster physically overlap. Below xl
                 the badges live in the drawer instead. */}
@@ -410,6 +407,7 @@ export default function Navbar() {
               size="md"
               variant="primary"
               ground={scrolled ? "light" : "dark"}
+              style={{ fontSize: 14 }}
             >
               Join waitlist
             </Button>
@@ -422,82 +420,98 @@ export default function Navbar() {
               class rule md:hidden relies on — so hiding it from the button
               itself silently failed and it rendered at every width, next to
               the nav links it is supposed to replace. */}
-          <div className="md:hidden z-10">
+          <div className="lg:hidden z-10">
             <Button
-              onClick={() => setMobileOpen(true)}
+              onClick={() => setMobileOpen((v) => !v)}
               variant="icon"
-              size="md"
+              size="lg"
               ground={scrolled ? "light" : "dark"}
-              aria-label="Open menu"
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
               style={{ flexDirection: "column", gap: 5 }}
             >
-              {[0, 1, 2].map((i) => (
+              {mobileOpen ? (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M15 5L5 15M5 5l10 10" stroke={scrolled ? INK : "white"} strokeWidth="1.75" strokeLinecap="round" />
+                </svg>
+              ) : [0, 1, 2].map((i) => (
                 <span key={i} className={`block h-0.5 rounded-full ${i === 2 ? "w-3.5" : "w-5"}`}
-                  style={{ background: scrolled ? "#1A1512" : "white", transition: "background 0.3s" }} />
+                  style={{ background: scrolled ? INK : "white", transition: "background 0.3s" }} />
               ))}
             </Button>
           </div>
         </div>
       </motion.nav>
 
-      {/* Mobile drawer — enters from the right, where the hamburger lives, and
-          leaves along the same path. In one way, out the same way. */}
+      {/* Dropdown menu (under 1024px). Opens straight under the bar in the
+          bar's own colours; links close it, and so does a tap outside or Escape. */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            id="mobile-menu"
-            ref={drawerRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu"
-            initial={reduced ? { opacity: 0 } : { x: "100%" }}
-            animate={reduced ? { opacity: 1 } : { x: 0 }}
-            exit={reduced ? { opacity: 0 } : { x: "100%" }}
-            transition={reduced ? { duration: 0.18 } : springSheet}
-            className="fixed inset-0 z-[100]"
-            style={{ background: "#FDFCF9" }}
-          >
-            <div className="px-6 h-16 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border-light)" }}>
-              <Link href="/" onClick={closeDrawer} className="flex items-center gap-2.5">
-                <span style={{ width: 28, height: 28, borderRadius: 8, overflow: "hidden", border: "1px solid rgba(26,21,18,0.1)", flexShrink: 0 }}>
-                  <Image src="/logo.jpeg" alt="" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                </span>
-                <span style={{ fontSize: 17, fontWeight: 600, color: "#1A1512", letterSpacing: "-0.02em" }}>FitVerse</span>
-              </Link>
-              <Button onClick={closeDrawer} variant="icon" size="sm" aria-label="Close menu"
-                style={{ color: "#57514B" }}>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-                </svg>
-              </Button>
-            </div>
-            <div className="px-6 py-8 flex flex-col gap-1">
-              {/* Ghost variant: left-aligned and larger than the default, but
-                  the same fill, radius and press behaviour as every other
-                  button. The Features row stays a next/link so in-app
-                  navigation is still client-side. */}
-              <Button onClick={scrollToHome} variant="ghost" size="lg" fullWidth style={DRAWER_LINK}>
-                About
-              </Button>
-              <Link href="/features" onClick={closeDrawer} style={{ ...DRAWER_LINK, ...DRAWER_LINK_BASE }}>
-                Features
-              </Link>
-              <Button onClick={openPricing} variant="ghost" size="lg" fullWidth style={DRAWER_LINK}>
-                Pricing
-              </Button>
-              <div className="pt-5 mt-3 flex flex-col gap-4" style={{ borderTop: "1px solid var(--border-light)" }}>
-                <div className="flex gap-2">
-                  <StoreBadge store="apple" scrolled />
-                  <StoreBadge store="google" scrolled />
+          <>
+            <motion.button
+              type="button"
+              aria-label="Close menu"
+              tabIndex={-1}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              onClick={closeDrawer}
+              className="fixed inset-0 z-[40] lg:hidden"
+              style={{ background: "var(--scrim)", border: "none", cursor: "default" }}
+            />
+            <motion.div
+              id="mobile-menu"
+              aria-label="Menu"
+              initial={reduced ? { opacity: 0 } : { opacity: 0, y: -8 }}
+              animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
+              exit={reduced ? { opacity: 0 } : { opacity: 0, y: -8 }}
+              transition={reduced ? { duration: 0.18 } : springSnappy}
+              className="fixed left-0 right-0 z-[49] lg:hidden overflow-y-auto"
+              style={{
+                top: 60,
+                maxHeight: "calc(100svh - 60px)",
+                background: scrolled ? "#FDFCF9" : "#121110",
+                borderBottom: `1px solid ${scrolled ? "var(--border-light)" : "rgba(255,255,255,0.12)"}`,
+                paddingLeft: "max(20px, env(safe-area-inset-left))",
+                paddingRight: "max(20px, env(safe-area-inset-right))",
+                paddingBottom: "max(24px, env(safe-area-inset-bottom))",
+                paddingTop: 8,
+              }}
+            >
+              <div className="flex flex-col mx-auto w-full max-w-7xl">
+                {[
+                  { label: "About", onClick: scrollToHome },
+                  { label: "Features", href: "/features" },
+                  { label: "Pricing", onClick: openPricing },
+                ].map((row) => {
+                  const style = {
+                    display: "flex", alignItems: "center", width: "100%", height: 52,
+                    fontFamily: "var(--font-head)", fontSize: 18, fontWeight: 500,
+                    letterSpacing: "-0.015em", textDecoration: "none", textAlign: "left" as const,
+                    background: "none", border: "none", cursor: "pointer",
+                    color: scrolled ? INK : "#FDFCF9",
+                    borderBottom: `1px solid ${scrolled ? "var(--border-light)" : "rgba(255,255,255,0.1)"}`,
+                  };
+                  return row.href ? (
+                    <Link key={row.label} href={row.href} onClick={closeDrawer} style={style}>{row.label}</Link>
+                  ) : (
+                    <button key={row.label} type="button" onClick={row.onClick} style={style}>{row.label}</button>
+                  );
+                })}
+                <div className="flex flex-wrap gap-2 pt-5">
+                  <StoreBadge store="apple" scrolled={scrolled} />
+                  <StoreBadge store="google" scrolled={scrolled} />
                 </div>
-                <Button onClick={scrollToWaitlist} size="lg" fullWidth>
-                  Join waitlist
-                </Button>
+                <div className="pt-4">
+                  <Button onClick={scrollToWaitlist} size="lg" fullWidth ground={scrolled ? "light" : "dark"}>
+                    Join waitlist
+                  </Button>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

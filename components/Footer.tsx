@@ -3,11 +3,12 @@
 import { useState, useRef, useId } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useInView, useReducedMotion } from "framer-motion";
-import { reveal, springSnappy } from "@/lib/motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { reveal, springSnappy, useInViewSafe } from "@/lib/motion";
 import Button from "@/components/ui/Button";
+import { turnstileEnabled, useTurnstile } from "@/components/useTurnstile";
 
-type FormState = "idle" | "loading" | "success" | "duplicate" | "error";
+type FormState = "idle" | "loading" | "success" | "error";
 
 function InstagramIcon() {
   return (
@@ -46,46 +47,32 @@ export default function Footer() {
   const reduced = useReducedMotion();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [trap, setTrap] = useState(""); // honeypot: only a bot fills this
+  const { holder: turnstileHolder, getToken } = useTurnstile();
   const [formState, setFormState] = useState<FormState>("idle");
   const sectionRef = useRef(null);
-  const inView = useInView(sectionRef, { once: true, margin: "-80px" });
+  const inView = useInViewSafe(sectionRef, { once: true, margin: "-80px" });
 
   const nameId = useId();
   const emailId = useId();
 
+  /* One request per click, never retried automatically: a failure shows the
+     error line and waits for the visitor to submit again. */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) return;
+    if (formState === "loading" || !name.trim() || !email.trim()) return;
     setFormState("loading");
     try {
+      /* Invisible bot check. If it cannot produce a token, do not submit. */
+      const turnstileToken = turnstileEnabled ? await getToken() : "";
+      if (turnstileToken === null) { setFormState("error"); return; }
       const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), email: email.trim() }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), website: trap, turnstileToken }),
       });
-      /* TEMP DEBUG — remove once the waitlist failure is diagnosed.
-         Read the raw text first: if the route dies before it can serialise
-         JSON, res.json() throws and the real body is lost. */
-      const raw = await res.text();
-      console.log("[waitlist] HTTP", res.status, res.statusText);
-      console.log("[waitlist] raw body:", raw);
-
-      let data: Record<string, unknown> = {};
-      try {
-        data = JSON.parse(raw);
-        console.log("[waitlist] parsed body:", data);
-      } catch {
-        console.error("[waitlist] body was not JSON");
-      }
-
-      if (res.status === 409 || data.error === "duplicate") setFormState("duplicate");
-      else if (res.ok && data.success) setFormState("success");
-      else {
-        console.error("[waitlist] FAILED — error:", data.error, "debug:", data.debug);
-        setFormState("error");
-      }
-    } catch (err) {
-      console.error("[waitlist] fetch/handler threw:", err);
+      setFormState(res.ok ? "success" : "error");
+    } catch {
       setFormState("error");
     }
   };
@@ -117,36 +104,41 @@ export default function Footer() {
      A 14px-radius input against a capsule button reads as two unrelated parts
      of one control. */
   const inputClass =
-    "w-full sm:w-[220px] h-[52px] rounded-full px-6 text-[15px] font-normal text-white " +
+    "w-full md:w-[220px] h-[52px] rounded-full px-6 text-[14px] font-normal text-white " +
     "bg-white/[0.07] border border-white/20 placeholder-white/45 " +
     "focus:border-white/60 focus:bg-white/[0.11] focus:outline-none " +
     "disabled:opacity-50 transition-all duration-200";
 
   return (
-    <footer id="waitlist" className="text-white" style={{ backgroundColor: "#0F0D0A" }} role="contentinfo">
+    <footer className="text-white" role="contentinfo" style={{ backgroundColor: "#121110", paddingBottom: "env(safe-area-inset-bottom)", paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)" }}>
       {/* ── Waitlist ── */}
-      <div ref={sectionRef} style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-        <div className="max-w-7xl mx-auto px-6 py-20 lg:py-28 flex flex-col items-center justify-center text-center">
+      {/* The anchor sits on the form block, so "Join waitlist" lands on the
+          form. The scroll margin keeps the landing position the footer anchor
+          used to give. */}
+      <div
+        id="waitlist"
+        ref={sectionRef}
+        className="scroll-mt-8 lg:scroll-mt-16"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}
+      >
+        <div className="max-w-7xl mx-auto px-5 md:px-6 pt-[60px] pb-20 lg:pb-28 flex flex-col items-center justify-center text-center">
           <motion.div
             initial={{ opacity: 0, y: reduced ? 0 : 32 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={reveal}
             className="w-full max-w-2xl flex flex-col items-center justify-center text-center"
           >
-            <p style={{
-              fontSize: 12, fontWeight: 600, letterSpacing: "0.1em",
-              textTransform: "uppercase", color: "rgba(255,255,255,0.62)", marginBottom: 16,
-            }}>
+            <p className="t-eyebrow" style={{ color: "rgba(255,255,255,0.62)", marginBottom: 16 }}>
               Get early access
             </p>
-            <h2 style={{
-              fontSize: "clamp(2rem, 5vw, 2.75rem)", fontWeight: 700, color: "white",
-              letterSpacing: "-0.03em", lineHeight: 1.08, marginBottom: 12, textWrap: "balance",
+            <h2 className="t-section-title fv-wl-title" style={{
+              color: "white", marginBottom: 12, textWrap: "balance",
             }}>
               Be first when we launch.
             </h2>
-            <p style={{
-              fontSize: "0.9375rem", color: "rgba(255,255,255,0.72)",
+            <p className="fv-wl-p" style={{
+              fontFamily: "var(--font-body)", fontWeight: 400,
+              fontSize: 16, color: "rgba(255,255,255,0.72)",
               lineHeight: 1.6, marginBottom: 32, maxWidth: "46ch",
             }}>
               Your launch invite and the occasional build update. No spam, no noise,
@@ -171,7 +163,15 @@ export default function Footer() {
                 <p className="text-white text-[16px] font-medium">You&apos;re in. See you at launch.</p>
               </motion.div>
             ) : (
-              <form onSubmit={handleSubmit} className="flex flex-row gap-3 justify-center items-center flex-wrap w-full">
+              <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-3 justify-center items-stretch md:items-center md:flex-wrap w-full">
+                {/* Honeypot. Off-screen and out of the tab order and the accessibility
+                    tree, so humans and screen readers never meet it; bots fill it. */}
+                <div aria-hidden="true" style={{ position: "absolute", left: -9999, top: "auto", width: 1, height: 1, overflow: "hidden" }}>
+                  <label>
+                    Leave this field empty
+                    <input type="text" name="website" tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} />
+                  </label>
+                </div>
                 {/* Placeholders are not labels: they vanish on focus and are not a
                     reliable accessible name. */}
                 <label htmlFor={nameId} className="sr-only">Your name</label>
@@ -184,6 +184,7 @@ export default function Footer() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  maxLength={80}
                   disabled={formState === "loading"}
                   className={inputClass}
                 />
@@ -198,6 +199,7 @@ export default function Footer() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  maxLength={254}
                   disabled={formState === "loading"}
                   className={inputClass}
                 />
@@ -206,9 +208,10 @@ export default function Footer() {
                   type="submit"
                   size="lg"
                   ground="dark"
+                  style={{ fontSize: 14 }}
                   disabled={formState === "loading"}
                   aria-busy={formState === "loading"}
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 fv-submit"
                 >
                   {formState === "loading" ? (
                     <>
@@ -222,14 +225,12 @@ export default function Footer() {
               </form>
             )}
 
+            {/* Cloudflare Turnstile mounts here. Empty and zero-height in invisible mode. */}
+            <div ref={turnstileHolder} />
+
             {/* Status is announced, not just shown. Without a live region a
                 screen-reader user submits the form and hears nothing back. */}
             <p role="status" aria-live="polite" className="mt-3 text-[13px] text-center min-h-[1.25rem]">
-              {formState === "duplicate" && (
-                <span style={{ color: "rgba(255,255,255,0.72)" }}>
-                  You&apos;re already on the list. We&apos;ll see you at launch.
-                </span>
-              )}
               {formState === "error" && (
                 <span style={{ color: "#FCA5A5" }}>Something went wrong. Try again.</span>
               )}
@@ -239,8 +240,8 @@ export default function Footer() {
       </div>
 
       {/* ── Footer body ── */}
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+      <div className="fv-footer-body max-w-7xl mx-auto px-5 md:px-6 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-12 lg:gap-8">
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
               {/* Same mark and same tile as the navbar. This was previously a
@@ -257,7 +258,7 @@ export default function Footer() {
                 <Image src="/logo.jpeg" alt="" width={28} height={28}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </span>
-              <span className="text-[17px] font-semibold text-white" style={{ letterSpacing: "-0.02em" }}>FitVerse</span>
+              <span className="text-[17px] font-semibold text-white" style={{ fontFamily: "var(--font-head)", letterSpacing: "-0.02em" }}>FitVerse</span>
             </div>
             <p className="text-[13px] leading-relaxed max-w-[220px]" style={{ color: "rgba(255,255,255,0.72)" }}>
               An AI fitness system built in India. Currently in pre-launch.
@@ -291,7 +292,7 @@ export default function Footer() {
 
           <nav aria-labelledby="footer-product">
             <p id="footer-product" style={{
-              fontSize: 11.5, fontWeight: 600, letterSpacing: "0.1em",
+              fontFamily: "var(--font-head)", fontSize: 12, fontWeight: 500, letterSpacing: "0.12em",
               textTransform: "uppercase", color: "rgba(255,255,255,0.62)", marginBottom: 20,
             }}>
               Product
@@ -307,7 +308,7 @@ export default function Footer() {
 
           <nav aria-labelledby="footer-company">
             <p id="footer-company" style={{
-              fontSize: 11.5, fontWeight: 600, letterSpacing: "0.1em",
+              fontFamily: "var(--font-head)", fontSize: 12, fontWeight: 500, letterSpacing: "0.12em",
               textTransform: "uppercase", color: "rgba(255,255,255,0.62)", marginBottom: 20,
             }}>
               Company
@@ -327,7 +328,7 @@ export default function Footer() {
 
           <nav aria-labelledby="footer-legal">
             <p id="footer-legal" style={{
-              fontSize: 11.5, fontWeight: 600, letterSpacing: "0.1em",
+              fontFamily: "var(--font-head)", fontSize: 12, fontWeight: 500, letterSpacing: "0.12em",
               textTransform: "uppercase", color: "rgba(255,255,255,0.62)", marginBottom: 20,
             }}>
               Legal
@@ -343,20 +344,20 @@ export default function Footer() {
         </div>
 
         <div
-          className="mt-16 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
+          className="mt-12 md:mt-16 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
           style={{ borderTop: "1px solid rgba(255,255,255,0.09)" }}
         >
           {/* Was rgba(255,255,255,0.4) — roughly 3.8:1 on this ground, below the
               4.5:1 minimum. Lifted rather than restyled. */}
-          <p className="text-[13px]" style={{ color: "rgba(255,255,255,0.62)" }}>
+          <p className="text-[13px]" style={{ color: "rgba(255,255,255,0.62)", fontWeight: 300 }}>
             © FitVerse · Since 2026 · Made in India 🇮🇳
           </p>
           <div className="flex gap-6">
-            <Link href="/privacy" className="text-[13px] text-white/62 hover:text-white focus-visible:text-white transition-colors"
+            <Link href="/privacy" className="text-[14px] text-white/62 hover:text-white focus-visible:text-white transition-colors"
               style={{ color: "rgba(255,255,255,0.62)" }}>
               Privacy Policy
             </Link>
-            <Link href="/terms" className="text-[13px] hover:text-white focus-visible:text-white transition-colors"
+            <Link href="/terms" className="text-[14px] hover:text-white focus-visible:text-white transition-colors"
               style={{ color: "rgba(255,255,255,0.62)" }}>
               Terms of Service
             </Link>
