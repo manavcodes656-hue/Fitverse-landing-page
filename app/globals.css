@@ -6,11 +6,18 @@
    DESIGN TOKENS  (warm natural palette)
 ────────────────────────────────────────────── */
 :root {
-  --font-inter:  "Inter",  -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-outfit: "Outfit", "Inter", -apple-system, sans-serif;
+  /* The type system. Use these everywhere instead of naming a family. */
+  --font-mark:   "Unbounded", sans-serif;        /* hero wordmark only */
+  --font-head:   "Outfit", sans-serif;           /* headings, nav, buttons, labels */
+  --font-body:   "Inter", sans-serif;            /* paragraphs, descriptions, inputs */
+  --font-accent: "DM Serif Display", serif;      /* italic accent words in headings only */
+  --font-tagline: "Instrument Serif", serif;     /* the hero tagline, which keeps its own face */
 
   /* Backgrounds */
-  --bg-primary:  #FDFCF9;
+  /* The one page cream. The body, the hero's fade and flame canvas, and the
+     first section after the hero all read this, so they cannot drift apart. */
+  --page-bg:     #FDFCF9;
+  --bg-primary:  var(--page-bg);
   --bg-surface:  #F5F0E8;
   --bg-dark:     #0F0D0A;
   --bg-card:     #FFFFFF;
@@ -54,10 +61,46 @@ html {
 }
 
 body {
-  font-family: var(--font-outfit), var(--font-inter);
+  font-family: var(--font-body);
   color: var(--text-primary);
   background: var(--bg-primary);
-  overflow-x: hidden;
+  /* clip, not hidden: with html also clipping, "hidden" turns body into a scroll
+     container and position: sticky stops pinning the horizontal feature section. */
+  overflow-x: clip;
+}
+
+/* ──────────────────────────────────────────────
+   TYPE ROLES
+   Shared by every section, so a heading is the same heading everywhere.
+   Colour and margin stay with the element; only the type lives here.
+────────────────────────────────────────────── */
+.t-section-title {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: clamp(32px, 4.2vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+/* Italic accent word inside a heading. DM Serif Display has the weight to sit
+   beside the heading face; it ships only in italic. */
+.t-accent {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.1em;
+}
+.t-eyebrow {
+  font-family: var(--font-head);
+  font-weight: 500;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+.t-lede {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.55;
 }
 
 /* ──────────────────────────────────────────────
@@ -81,23 +124,13 @@ body {
 :focus-visible { outline: 2px solid var(--accent-on-dark); outline-offset: 2px; }
 
 /* ──────────────────────────────────────────────
-   SKELETON
-────────────────────────────────────────────── */
-.skeleton {
-  background: rgba(0,0,0,0.06);
-  border-radius: 8px;
-  animation: pulse-soft 1.8s ease-in-out infinite;
-}
-
-@keyframes pulse-soft { 0%,100%{ opacity:1 } 50%{ opacity:0.5 } }
-
-/* ──────────────────────────────────────────────
    NAV LINKS
 ────────────────────────────────────────────── */
 .nav-link {
-  font-family: var(--font-outfit), var(--font-inter), sans-serif;
+  font-family: var(--font-head);
   font-size: 15px;
   font-weight: 500;
+  letter-spacing: 0;
   position: relative;
   padding: 4px 0;
   transition: color 0.2s ease;
@@ -132,48 +165,8 @@ body {
 .nav-scrolled .nav-link-active   { color: var(--text-primary) !important; }
 
 /* ──────────────────────────────────────────────
-   DRAG ARROWS
-────────────────────────────────────────────── */
-@keyframes nudge-left  { 0%{ transform:translateX(0) } 30%{ transform:translateX(-3px) } 60%{ transform:translateX(2px) } 100%{ transform:translateX(0) } }
-@keyframes nudge-right { 0%{ transform:translateX(0) } 30%{ transform:translateX(3px) }  60%{ transform:translateX(-2px) } 100%{ transform:translateX(0) } }
-.nudge-left  { animation: nudge-left  2s ease-in-out infinite; }
-.nudge-right { animation: nudge-right 2s ease-in-out 0.15s infinite; }
-
-/* ──────────────────────────────────────────────
-   HERO PULSE RING
-────────────────────────────────────────────── */
-@keyframes pulse-ring { 0%{ transform:scale(1); opacity:0.6 } 100%{ transform:scale(1.5); opacity:0 } }
-
-/* ──────────────────────────────────────────────
-   BOUNCE (scroll indicator)
-────────────────────────────────────────────── */
-@keyframes bounce-slow { 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(4px) } }
-
-/* ──────────────────────────────────────────────
-   HERO VIDEO — mobile object-position fix
-────────────────────────────────────────────── */
-.hero-video {
-  object-position: center center;
-}
-/* On narrow portrait phones, switch to cover so the video
-   fills the full screen without letterboxing */
-@media (max-width: 480px) {
-  .hero-video {
-    object-fit: cover !important;
-    object-position: center 25%;
-  }
-}
-@media (orientation: landscape) and (max-height: 500px) {
-  /* Landscape phones — contain is fine, center it */
-  .hero-video {
-    object-position: center center;
-  }
-}
-
-/* ──────────────────────────────────────────────
    UTILITIES
 ────────────────────────────────────────────── */
-.no-select { user-select:none; -webkit-user-select:none; }
 .glass {
   background: var(--accent-glass);
   backdrop-filter: blur(16px);
@@ -208,9 +201,6 @@ body {
   --mat-thin-bg:    rgba(253,252,249,0.62);
   --mat-thin-blur:  blur(20px) saturate(180%);
 
-  --mat-thick-bg:   rgba(253,252,249,0.82);
-  --mat-thick-blur: blur(30px) saturate(180%);
-
   --mat-dark-bg:    rgba(15,13,10,0.62);
   --mat-dark-blur:  blur(20px) saturate(160%);
 
@@ -233,36 +223,6 @@ body {
   border-bottom: 1px solid var(--mat-edge);
 }
 
-.mat-thick {
-  background: var(--mat-thick-bg);
-  backdrop-filter: var(--mat-thick-blur);
-  -webkit-backdrop-filter: var(--mat-thick-blur);
-  box-shadow: var(--mat-shadow-lg);
-}
-
-/* Vibrancy: over translucent surfaces, flat grey text dissolves.
-   Use higher contrast, slightly heavier weight, a touch more tracking. */
-.vibrant-secondary {
-  color: var(--text-secondary);
-  font-weight: 500;
-  letter-spacing: 0.005em;
-}
-
-/* Scroll edge effect — a soft fade where content meets floating chrome,
-   instead of a hard 1px divider. Only where chrome actually overlaps. */
-.scroll-edge::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; top: 100%;
-  height: 16px;
-  background: linear-gradient(to bottom, rgba(253,252,249,0.55), transparent);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  -webkit-mask-image: linear-gradient(to bottom, black, transparent);
-  mask-image: linear-gradient(to bottom, black, transparent);
-  pointer-events: none;
-}
-
 /* ──────────────────────────────────────────────
    ACCESSIBILITY  —  three independent signals
 ────────────────────────────────────────────── */
@@ -281,11 +241,6 @@ body {
     scroll-behavior: auto !important;
   }
 
-  /* Ambient loops are the worst offenders — stop them outright */
-  .nudge-left,
-  .nudge-right,
-  .hero-video { animation: none !important; }
-
   /* Keep the pressed-state feedback, just without the travel */
   .press\:scale:active { transform: none !important; }
 }
@@ -295,15 +250,13 @@ body {
 @media (prefers-reduced-transparency: reduce) {
   :root {
     --mat-thin-bg:  rgba(253,252,249,0.97);
-    --mat-thick-bg: rgba(253,252,249,1);
     --mat-dark-bg:  rgba(15,13,10,0.97);
     --scrim:        rgba(15,13,10,0.82);
   }
-  .mat-thin, .mat-thick {
+  .mat-thin {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
-  .scroll-edge::after { display: none; }
 }
 
 /* 3. Increased contrast.
@@ -314,7 +267,7 @@ body {
     --text-muted:     #55504A;
     --border-light:   rgba(26,21,18,0.28);
   }
-  .mat-thin, .mat-thick {
+  .mat-thin {
     background: var(--bg-primary);
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
@@ -332,3 +285,96 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .press\:scale:active { transform: scale(0.97); }
+
+/* ──────────────────────────────────────────────
+   RESPONSIVE  —  shared rules
+   Breakpoints: 480 / 768 / 1024 / 1280, mobile first. Desktop (1024+) keeps the
+   values set in each component; everything below is scoped to smaller screens
+   or to touch pointers.
+────────────────────────────────────────────── */
+html { overflow-x: clip; }
+img, video { max-width: 100%; }
+h1, h2, h3, p, li { overflow-wrap: break-word; }
+
+/* One gutter, one container: 20px on phones, 32px on tablets. Desktop keeps
+   each section's own padding. */
+.fv-gutter { padding-inline: 20px; }
+@media (min-width: 768px)  { .fv-gutter { padding-inline: 32px; } }
+
+/* Touch: every control gets a 44px hit area. */
+@media (pointer: coarse) {
+  .nav-link { display: inline-flex; align-items: center; min-height: 44px; }
+  .hit-44 { position: relative; }
+  .hit-44::before { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: 44px; transform: translate(-50%, -50%); }
+}
+
+/* FAQ, phones */
+@media (max-width: 767px) {
+  .faq-wrap  { padding-left: max(20px, env(safe-area-inset-left)) !important; padding-right: max(20px, env(safe-area-inset-right)) !important; }
+  .faq-title { font-size: clamp(28px, 8vw, 52px) !important; }
+  .faq-list  { margin-top: 40px !important; }
+  .faq-row   { padding: 16px 0 !important; gap: 12px !important; padding-right: 0 !important; }
+  .faq-num   { font-size: 11px !important; width: 24px !important; }
+  .faq-q     { font-size: 16px !important; min-width: 0; }
+  .faq-a     { font-size: 15.5px !important; line-height: 1.6 !important; padding-bottom: 20px !important; }
+}
+
+/* Waitlist + footer, phones */
+@media (max-width: 767px) {
+  .fv-wl-title { font-size: clamp(28px, 8vw, 52px) !important; }
+  .fv-wl-p     { font-size: 15.5px !important; max-width: 36ch !important; }
+  .fv-submit   { width: 100% !important; }
+}
+@media (pointer: coarse) {
+  footer a:not(.underline) { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+}
+
+.fv-noscroll { scrollbar-width: none; -ms-overflow-style: none; }
+.fv-noscroll::-webkit-scrollbar { display: none; }
+
+/* ── Carousel controls ───────────────────────────────────────────────────────
+   Two carousels share one look: the Action fan (.show-*) and the feature
+   carousel (.fvm-*). The feature carousel's dots are pure CSS; the Action dots
+   are animated inline by Framer Motion, which is why their phone rules below
+   need !important. */
+.show-dot { height: 8px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+
+.fvm-controls { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 28px; }
+.fvm-dots { display: flex; align-items: center; }
+.fvm-dot { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.fvm-dot > span { display: block; height: 8px; width: 8px; border-radius: 9999px; background: #BFB6AA; transition: width 0.3s ease, background-color 0.3s ease; }
+.fvm-dot[aria-selected="true"] > span { width: 26px; background: var(--accent); }
+.fvm-arrow { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 9999px; border: 1px solid rgba(26, 21, 18, 0.14); background: #fff; color: var(--text-primary); cursor: pointer; }
+
+/* Tablets (touch, 768px and up): 44x44 hit areas. The dots keep their 8px look;
+   the button around each grows. Seven to a row (308px), so 14 dots wrap to two
+   rows and the arrows sit on a row of their own. */
+@media (pointer: coarse) and (min-width: 768px) {
+  .show-controls { flex-wrap: wrap; justify-content: center; }
+  .show-dots { flex: 0 0 100%; flex-wrap: wrap; justify-content: center; gap: 0; order: 3; padding-inline: max(0px, calc((100% - 308px) / 2)); }
+  .show-dot { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+}
+
+/* Phones (under 768px): small dots on one row between the arrows. The visible
+   dot is 5px; the tap target is the 24px-tall button, with 3px of side padding
+   so the visible gap between neighbours is 6px. */
+@media (max-width: 767px) {
+  :root {
+    --dot: 5px;
+    --dot-active-w: 14px;
+    --dot-off: rgba(28, 26, 24, 0.28);
+    --dot-on: #C4521F;
+  }
+  .show-controls, .fvm-controls { flex-wrap: nowrap; justify-content: center; gap: 9px; }
+  .show-controls { margin-top: 8px; }
+  .show-count { margin-top: 8px; font-size: 13px !important; } /* beats the inline 13.5px */
+  .show-dots, .fvm-dots { flex: 0 0 auto; flex-wrap: nowrap; gap: 0; order: 0; padding: 0; }
+  .show-dot, .fvm-dot { box-sizing: content-box; width: auto; height: 24px; padding: 0 3px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .fvm-dot > span { width: var(--dot); height: var(--dot); background: var(--dot-off); }
+  .fvm-dot[aria-selected="true"] > span { width: var(--dot-active-w); background: var(--dot-on); }
+  .fvm-arrow { width: 34px; height: 34px; }
+  /* Framer Motion writes these inline on the Action dots and arrows. */
+  .show-dot > span { width: var(--dot) !important; height: var(--dot) !important; background-color: var(--dot-off) !important; }
+  .show-dot[aria-selected="true"] > span { width: var(--dot-active-w) !important; background-color: var(--dot-on) !important; }
+  .show-arrow { width: 34px !important; height: 34px !important; }
+}

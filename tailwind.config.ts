@@ -9,9 +9,11 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans:   ["Outfit","var(--font-outfit)","Inter","var(--font-inter)","-apple-system","BlinkMacSystemFont","Helvetica Neue","Arial","sans-serif"],
-        outfit: ["Outfit","var(--font-outfit)","sans-serif"],
-        inter:  ["Inter","var(--font-inter)","sans-serif"],
+        sans:   ["var(--font-body)"],
+        mark:   ["var(--font-mark)"],
+        head:   ["var(--font-head)"],
+        body:   ["var(--font-body)"],
+        accent: ["var(--font-accent)"],
       },
       colors: {
         /* ── Backgrounds ── */

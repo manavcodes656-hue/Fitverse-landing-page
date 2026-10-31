@@ -1,13 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit } from "next/font/google";
 import "./globals.css";
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-outfit",
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://fitverse.app'),
@@ -35,8 +27,7 @@ export const metadata: Metadata = {
     url: '/',
     siteName: 'FitVerse',
     locale: 'en_IN',
-    // NOTE: /public/og-image.jpg does not exist yet — must be created at
-    // 1200×630 before launch, or every social share renders blank.
+    // 1200×630 share image, in /public. Replace it with final artwork when ready.
     images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'FitVerse — one app for nutrition, training, sleep and recovery' }]
   },
   twitter: {
@@ -47,6 +38,16 @@ export const metadata: Metadata = {
     images: ['/og-image.jpg']
   }
 };
+
+/* Static trusted CSS, no user input. Injected as raw HTML because React would
+   escape the quotes in the attribute selectors and break them. */
+const NOSCRIPT_STYLE = `<style>
+.fvh.pre .fvh-wordmark, .fvh.pre .fvh-tagline, .fvh.pre .fvh-sub, .fvh.pre .fvh-glow,
+.fvh.pre .fvh-flame-wrap, .fvh.pre .fvh-frame, .fvh.pre .fvh-frame .fvh-inner,
+.fvh-demo .fvh-frame { opacity: 1 !important; visibility: visible !important; }
+[style*="opacity:0;"], [style$="opacity:0"] { opacity: 1 !important; transform: none !important; }
+[data-intro] { display: none !important; }
+</style>`;
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -60,10 +61,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en-IN" className={`${outfit.variable} scroll-smooth`}>
+    <html lang="en-IN" className="scroll-smooth">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* App Router has no _document: this layout wraps every page, so the rule's "single page" warning does not apply. */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Outfit:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@1&family=Instrument+Serif:ital@0;1&display=swap"
+        />
         {/* Canonical and robots are emitted by the Metadata API above — do not
             duplicate them here. */}
+        {/* Without JavaScript the entrance animations never run, so anything
+            they start hidden (opacity 0) must be shown, and the splash hidden. */}
+        <noscript dangerouslySetInnerHTML={{ __html: NOSCRIPT_STYLE }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -106,7 +118,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-sans antialiased text-[#111827] bg-white">{children}</body>
+      <body className="font-body antialiased text-[#111827] bg-[var(--page-bg)]">{children}</body>
     </html>
   );
 }

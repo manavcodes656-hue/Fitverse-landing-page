@@ -29,9 +29,8 @@ import {
   useReducedMotion,
   useMotionValueEvent,
   useMotionValue,
-  useInView,
 } from "framer-motion";
-import { reveal, spring } from "@/lib/motion";
+import { reveal, spring, useInViewSafe } from "@/lib/motion";
 
 /* ── Palette (existing tokens only) ──────────────────────────────────────── */
 const GROUND = "#0F0D0A";
@@ -257,7 +256,7 @@ function Node({ mod, i }: { mod: Module; i: number }) {
      user, so nothing should overshoot. Reduced motion keeps the stagger but
      drops the travel — a cross-fade, not a slide. */
   const contentRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(contentRef, { once: true, margin: "0px 0px -30% 0px" });
+  const inView = useInViewSafe(contentRef, { once: true, margin: "0px 0px -30% 0px" });
 
   const rise = (delay: number, dist: number) => ({
     initial: reduced ? { opacity: 0 } : { opacity: 0, y: dist },

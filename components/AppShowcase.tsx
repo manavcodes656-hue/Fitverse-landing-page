@@ -14,8 +14,9 @@ import {
   type MotionValue,
   type AnimationPlaybackControls,
 } from "framer-motion";
-import { reveal, project, VelocityTracker } from "@/lib/motion";
+import { reveal, project, VelocityTracker, useInViewSafe } from "@/lib/motion";
 import Button from "@/components/ui/Button";
+import { ACCENT, INK, INK_DIM } from "@/lib/tokens";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    APP SHOWCASE — 3D curved carousel
@@ -94,6 +95,7 @@ export const SHOWCASE_SCREENS: ShowcaseScreen[] = [
   { image: "/screen-sleep.webp",             label: "Sleep",             tint: "#8C2F3D" },
   { image: "/screen-ai-coach.webp",          label: "AI Coach",          tint: "#831843" },
   { image: "/screen-wellness.webp",          label: "Wellness",          tint: "#1E3A8A" },
+  { image: "/screen-cycle.webp",             label: "Cycle",             tint: "#9D174D" },
   { image: "/screen-meditation-player.webp", label: "Meditation Player", tint: "#3F6212" },
   { image: "/screen-community.webp",         label: "Community",         tint: "#7F1D1D" },
   { image: "/screen-leaderboard.webp",       label: "Leaderboard",       tint: "#0F766E" },
@@ -103,19 +105,13 @@ const CARD_W = "clamp(190px, 54vw, 262px)";
 const GRID_CARD_W = "clamp(148px, 16vw, 208px)";
 
 /* White, with only enough falloff at the edges to stop it reading as a flat
-   slab and to give the outer phones something to sit against. The FAQ above
-   is #F5F0E8, so the brighter centre still separates the two sections. */
+   slab and to give the outer phones something to sit against. The edge ends
+   on --page-bg, the colour of the FAQ below it, so the two join without a seam. */
 const SECTION_BG =
-  "radial-gradient(125% 88% at 50% 40%, #FFFFFF 0%, #FDFBF8 52%, #F6F1E9 100%)";
+  "radial-gradient(125% 88% at 50% 40%, #FFFFFF 0%, #FDFBF8 52%, var(--page-bg) 100%)";
 const SECTION_PAD = "clamp(88px, 12vh, 140px) 0";
 const STAGE_MAX = 1680;
 const STAGE_PAD = "clamp(16px, 3vw, 64px)";
-
-/* Dark-on-white palette. #A83D0B on #FFFFFF is 6.3:1 and #57514B is 7.4:1 —
-   both clear AA at these sizes. */
-const INK = "#1A1512";
-const INK_DIM = "#57514B";
-const ACCENT = "#A83D0B";
 
 const AUTOPLAY_MS = 3200;
 
@@ -139,10 +135,34 @@ const FAN = {
    rank drops away rather than shrinking into an unreadable sliver. */
 const TIER = {
   narrow: { xMul: 0.62, zMul: 0.7, perspective: 900,  outerOpacity: 0.0, lift: 0 },
-  mid:    { xMul: 0.86, zMul: 0.9, perspective: 1200, outerOpacity: 0.42, lift: -8 },
-  wide:   { xMul: 1.00, zMul: 1.0, perspective: 1500, outerOpacity: 0.58, lift: -10 },
+  mid:    { xMul: 0.86, zMul: 0.9, perspective: 1200, outerOpacity: 0.42, lift: 0 },
+  wide:   { xMul: 1.00, zMul: 1.0, perspective: 1500, outerOpacity: 0.58, lift: 0 },
 };
 type Tier = keyof typeof TIER;
+type Fan = typeof FAN;
+type TierCfg = (typeof TIER)[Tier];
+type Layout = "desktop" | "tablet" | "phone";
+
+/* Phones (under 768px): the desktop fan with three phones instead of five.
+   The centre phone is 62vw wide (capped at 300px) and sits in front. Each
+   neighbour is 78% of that size and tucked behind it, overlapping the centre by
+   35% of the neighbour's own width, turned ROTATE_Y degrees and pushed back. The
+   third rank is the exit rank, fully transparent, so only three are ever seen. */
+const PHONE_W = "min(62vw, 300px)";
+const SIDE_SCALE = 0.78;
+const SIDE_OVERLAP = 0.35;
+const ROTATE_Y = 8;
+/* Centre of a neighbour from the centre phone's centre, in centre-phone widths:
+   half the centre, minus the overlap, plus half the neighbour. */
+const SIDE_X = 0.5 - SIDE_OVERLAP * SIDE_SCALE + SIDE_SCALE / 2;
+const PHONE_T: TierCfg = { xMul: 1, zMul: 1, perspective: 1500, outerOpacity: 0, lift: 0 };
+const PHONE_FAN: Fan = {
+  x: [0, SIDE_X, SIDE_X + 0.5, SIDE_X + 0.7],
+  z: [0, -70, -130, -170],
+  rotate: [0, ROTATE_Y, ROTATE_Y + 4, ROTATE_Y + 6],
+  scale: [1, SIDE_SCALE, 0.6, 0.5],
+  opacity: [1, 0.85, 0, 0],
+};
 
 /** Settle after a release. Critically damped — a fan that bounces past the
     card you threw it at reads as sloppy, not playful. */
@@ -205,7 +225,7 @@ function PhoneFrame({
             src={screen.image}
             alt={screen.label}
             fill
-            sizes="(max-width: 768px) 54vw, 262px"
+            sizes="(max-width: 768px) 62vw, 262px"
             style={{ objectFit: "cover" }}
           />
         ) : (
@@ -256,7 +276,10 @@ function FanCard({
   count,
   pos,
   cardW,
-  tier,
+  fan,
+  t,
+  hoverable,
+  cardWCss,
   revealed,
   reachable,
   onSelect,
@@ -266,12 +289,14 @@ function FanCard({
   count: number;
   pos: MotionValue<number>;
   cardW: number;
-  tier: Tier;
+  fan: Fan;
+  t: TierCfg;
+  hoverable: boolean;
+  cardWCss: string;
   revealed: boolean;
   reachable: boolean;
   onSelect: () => void;
 }) {
-  const t = TIER[tier];
   const [hovered, setHovered] = useState(false);
 
   /* This card's signed distance from centre, in slots. Everything below hangs
@@ -308,23 +333,23 @@ function FanCard({
      base spread is 4px on a 568px card. Verified by measuring the live DOM,
      not derived — if the fan geometry changes, re-measure. */
   const cardH = cardW * (19.5 / 9);
-  const yRanks = FAN.scale.map((s, r) => {
-    const pf = t.perspective / (t.perspective - FAN.z[r] * t.zMul);
+  const yRanks = fan.scale.map((s, r) => {
+    const pf = t.perspective / (t.perspective - fan.z[r] * t.zMul);
     return (cardH * (1 - s * Math.sqrt(pf))) / 2;
   });
 
-  const x = useTransform(rel, stops, mirror(FAN.x, true).map((v) => v * cardW * t.xMul));
+  const x = useTransform(rel, stops, mirror(fan.x, true).map((v) => v * cardW * t.xMul));
   const y = useTransform(rel, stops, mirror(yRanks));
-  const z = useTransform(rel, stops, mirror(FAN.z).map((v) => v * t.zMul));
-  const rotateY = useTransform(rel, stops, mirror(FAN.rotate, true));
-  const scale = useTransform(rel, stops, mirror(FAN.scale));
+  const z = useTransform(rel, stops, mirror(fan.z).map((v) => v * t.zMul));
+  const rotateY = useTransform(rel, stops, mirror(fan.rotate, true));
+  const scale = useTransform(rel, stops, mirror(fan.scale));
   const opacity = useTransform(
     rel,
     stops,
-    [0, 0, t.outerOpacity, FAN.opacity[1], 1, FAN.opacity[1], t.outerOpacity, 0, 0]
+    [0, 0, t.outerOpacity, fan.opacity[1], 1, fan.opacity[1], t.outerOpacity, 0, 0]
   );
 
-  const canHover = tier !== "narrow" && reachable;
+  const canHover = hoverable && reachable;
 
   return (
     /* 1. Fan — compositor-driven, never re-rendered. Absolute centring via
@@ -354,12 +379,33 @@ function FanCard({
         onHoverStart={() => canHover && setHovered(true)}
         onHoverEnd={() => setHovered(false)}
         onClick={onSelect}
-        style={{ cursor: reachable ? "pointer" : "default" }}
+        style={{ cursor: reachable ? "pointer" : "default", transformOrigin: "50% 50%" }}
       >
-        <PhoneFrame screen={screen} depth={hovered ? -0.7 : 0} />
+        <PhoneFrame screen={screen} depth={hovered ? -0.7 : 0} width={cardWCss} />
       </motion.div>
     </motion.div>
   );
+}
+
+/* Which fan geometry applies. Re-evaluated only when a breakpoint is crossed. */
+function useFanLayout() {
+  const [tier, setTier] = useState<Tier>("wide");
+  const [layout, setLayout] = useState<Layout>("desktop");
+  useEffect(() => {
+    const small = window.matchMedia("(max-width: 640px)");
+    const medium = window.matchMedia("(max-width: 1280px)");
+    const phoneMq = window.matchMedia("(max-width: 767px)");
+    const tabletMq = window.matchMedia("(max-width: 1023px)");
+    const all = [small, medium, phoneMq, tabletMq];
+    const sync = () => {
+      setTier(small.matches ? "narrow" : medium.matches ? "mid" : "wide");
+      setLayout(phoneMq.matches ? "phone" : tabletMq.matches ? "tablet" : "desktop");
+    };
+    sync();
+    all.forEach((mq) => mq.addEventListener("change", sync));
+    return () => all.forEach((mq) => mq.removeEventListener("change", sync));
+  }, []);
+  return { tier, layout };
 }
 
 export default function AppShowcase() {
@@ -369,12 +415,14 @@ export default function AppShowcase() {
   const inView = useInView(sectionRef, { margin: "-15% 0px -15% 0px" });
   const [revealed, setRevealed] = useState(false);
   useEffect(() => { if (inView) setRevealed(true); }, [inView]);
+  /* Backstop: if the observer never reports, show the phones after 7s. */
+  useEffect(() => { const id = setTimeout(() => setRevealed(true), 7000); return () => clearTimeout(id); }, []);
 
   const count = SHOWCASE_SCREENS.length;
 
   const [index, setIndex] = useState(0);
   const [manual, setManual] = useState(false);
-  const [tier, setTier] = useState<Tier>("wide");
+  const { tier, layout } = useFanLayout();
   const [cardW, setCardW] = useState(262);
 
   /* The single source of truth: position along the fan, in slot units.
@@ -384,19 +432,6 @@ export default function AppShowcase() {
   const tracker = useRef(new VelocityTracker());
   const drag = useRef({ active: false, startX: 0, startPos: 0, moved: false });
   const sizerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const small = window.matchMedia("(max-width: 640px)");
-    const medium = window.matchMedia("(max-width: 1280px)");
-    const sync = () => setTier(small.matches ? "narrow" : medium.matches ? "mid" : "wide");
-    sync();
-    small.addEventListener("change", sync);
-    medium.addEventListener("change", sync);
-    return () => {
-      small.removeEventListener("change", sync);
-      medium.removeEventListener("change", sync);
-    };
-  }, []);
 
   /* Spacing follows the real rendered card width rather than a duplicated copy
      of the clamp above, so changing CARD_W cannot silently desync the fan. */
@@ -435,10 +470,10 @@ export default function AppShowcase() {
   }, [pos, slideTo]);
 
   /* ── Pointer drag ──────────────────────────────────────────────────────── */
-  const slotsPerPx = () => 1 / (cardW * 1.05);
+  const slotsPerPx = () => 1 / (cardW * (layout === "phone" ? 0.7 : 1.05));
 
   const onPointerDown = (e: React.PointerEvent) => {
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* pointer already gone */ }
     /* Grab it mid-flight — never make someone wait for a settle to finish. */
     settle.current?.stop();
     drag.current = { active: true, startX: e.clientX, startPos: pos.get(), moved: false };
@@ -459,7 +494,7 @@ export default function AppShowcase() {
   const onPointerUp = (e: React.PointerEvent) => {
     if (!drag.current.active) return;
     drag.current.active = false;
-    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch { /* not captured */ }
 
     const vPx = tracker.current.get();            // px/s
     const vSlots = -vPx * slotsPerPx();           // slots/s, matching drag sign
@@ -485,11 +520,14 @@ export default function AppShowcase() {
     if (e.key === "ArrowRight") { e.preventDefault(); stepBy(1); }
   };
 
-  const t = TIER[tier];
+  const phone = layout === "phone";
+  const t: TierCfg = phone ? PHONE_T : layout === "tablet" ? { ...TIER[tier], outerOpacity: 0 } : TIER[tier];
+  const fan: Fan = phone ? PHONE_FAN : FAN;
+  const cardWCss = phone ? PHONE_W : CARD_W;
   const current = SHOWCASE_SCREENS[index];
   /* Only the five on the fan accept clicks — anything waiting off the ends is
      invisible and must not be hit-testable. */
-  const reachable = (i: number) => Math.abs(wrapSlots(i - index, count)) <= 2;
+  const reachable = (i: number) => Math.abs(wrapSlots(i - index, count)) <= (layout === "desktop" ? 2 : 1);
 
   /* ── Reduced motion: a static grid, no 3D, no drag, nothing moves. ── */
   if (reduced) {
@@ -504,7 +542,7 @@ export default function AppShowcase() {
             {SHOWCASE_SCREENS.map((s) => (
               <li key={s.label} className="flex flex-col items-center gap-4">
                 <PhoneFrame screen={s} width={GRID_CARD_W} />
-                <p style={{ fontSize: 14, fontWeight: 600, color: INK, letterSpacing: "-0.01em" }}>
+                <p style={{ fontFamily: "var(--font-head)", fontSize: 14, fontWeight: 600, color: INK, letterSpacing: "-0.01em" }}>
                   {s.label}
                 </p>
               </li>
@@ -519,7 +557,7 @@ export default function AppShowcase() {
     <section
       ref={sectionRef}
       className="overflow-hidden"
-      style={{ background: SECTION_BG, padding: SECTION_PAD }}
+      style={{ background: SECTION_BG, padding: "48px 0 40px" }}
       aria-labelledby="showcase-heading"
     >
       {/* Heading stays in the reading container — running text edge to edge is
@@ -531,7 +569,7 @@ export default function AppShowcase() {
       {/* Everything below is full-bleed. The outer rank is meant to crop
           against the edges, as it does in the reference. */}
       <div
-        className="w-full flex flex-col items-center"
+        className="w-full flex flex-col items-center mt-5"
         role="group"
         aria-roledescription="carousel"
         aria-label="FitVerse app screens"
@@ -539,7 +577,10 @@ export default function AppShowcase() {
         onKeyDown={onKeyDown}
         style={{
           outlineOffset: 6,
-          marginTop: "clamp(36px, 5vh, 64px)",
+          /* In flow under the heading: 20px from the mt-5 class,
+             no pull-up, and stacked below the heading. */
+          position: "relative",
+          zIndex: 1,
           maxWidth: STAGE_MAX,
           marginInline: "auto",
           paddingInline: STAGE_PAD,
@@ -547,13 +588,14 @@ export default function AppShowcase() {
       >
         {/* Invisible ruler: the real clamp, measured, so spacing cannot desync. */}
         <div ref={sizerRef} aria-hidden="true"
-             style={{ position: "absolute", width: CARD_W, height: 0, visibility: "hidden", pointerEvents: "none" }} />
+             style={{ position: "absolute", width: cardWCss, height: 0, visibility: "hidden", pointerEvents: "none" }} />
 
         {/* Stage */}
         <div
           className="relative w-full"
           style={{
-            height: "min(76svh, 660px)",
+            /* Sized to the ENLARGED centre phone (rest height x 1.035) exactly, so the hover scale fills spare room instead of spilling. Rest: 262px wide, 568px tall; enlarged and min-height 588px. */
+            minHeight: `calc(${phone ? PHONE_W : "clamp(190px, 54vw, 262px)"} * 19.5 / 9 * 1.035)`,
             perspective: t.perspective,
             perspectiveOrigin: "50% 50%",
             transformStyle: "preserve-3d",
@@ -573,7 +615,10 @@ export default function AppShowcase() {
               count={count}
               pos={pos}
               cardW={cardW}
-              tier={tier}
+              fan={fan}
+              t={t}
+              hoverable={!phone}
+              cardWCss={cardWCss}
               revealed={revealed}
               reachable={reachable(i)}
               onSelect={() => { if (!drag.current.moved) goToIndex(i); }}
@@ -582,7 +627,7 @@ export default function AppShowcase() {
         </div>
 
         {/* Caption — restaggers whenever the active card changes. */}
-        <div style={{ height: 30, marginTop: "clamp(20px, 3vh, 34px)" }}>
+        <div style={{ height: 26, marginTop: 16, position: "relative", zIndex: 2 }}>
           <AnimatePresence mode="wait">
             <motion.p
               key={index}
@@ -600,84 +645,94 @@ export default function AppShowcase() {
           </AnimatePresence>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-4" style={{ marginTop: "clamp(18px, 3vh, 30px)" }}>
-          <Button
-            onClick={() => stepBy(-1)}
-            aria-label="Previous screen"
-            variant="icon"
-            size="lg"
-            style={{ color: INK }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Button>
-
-          <div className="flex items-center gap-2" role="tablist" aria-label="Choose screen">
-            {SHOWCASE_SCREENS.map((s, i) => (
-              <button
-                key={s.label}
-                type="button"
-                role="tab"
-                aria-selected={i === index}
-                aria-label={s.label}
-                onClick={() => goToIndex(i)}
-                className="rounded-full"
-                style={{ height: 8, padding: 0, border: "none", background: "transparent", cursor: "pointer" }}
-              >
-                <motion.span
-                  className="block rounded-full"
-                  animate={{
-                    width: i === index ? 26 : 8,
-                    backgroundColor: i === index ? ACCENT : "#CFC5B7",
-                  }}
-                  transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-                  style={{ height: 8 }}
-                />
-              </button>
-            ))}
-          </div>
-
-          <Button
-            onClick={() => stepBy(1)}
-            aria-label="Next screen"
-            variant="icon"
-            size="lg"
-            style={{ color: INK }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Button>
-        </div>
-
-        <p role="status" aria-live="polite" style={{ fontSize: 13.5, color: INK_DIM, marginTop: 14 }}>
-          {current.label} — {index + 1} of {count}
-        </p>
+        <ShowcaseControls index={index} onStep={stepBy} onGo={goToIndex} />
       </div>
     </section>
   );
 }
 
+/* Arrows either side of the dot row, then the "X of N" status line. */
+function ShowcaseControls({ index, onStep, onGo }: { index: number; onStep: (delta: number) => void; onGo: (i: number) => void }) {
+  const current = SHOWCASE_SCREENS[index];
+  return (
+    <>
+    {/* Controls */}
+    <div className="show-controls flex items-center gap-4 mt-3" style={{ position: "relative", zIndex: 2 }}>
+      <Button
+        onClick={() => onStep(-1)}
+        aria-label="Previous screen"
+        className="show-arrow"
+        variant="icon"
+        size="lg"
+        style={{ color: INK }}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Button>
+
+      <div className="show-dots flex items-center gap-2" role="tablist" aria-label="Choose screen">
+        {SHOWCASE_SCREENS.map((s, i) => (
+          <button
+            key={s.label}
+            type="button"
+            role="tab"
+            aria-selected={i === index}
+            aria-label={s.label}
+            onClick={() => onGo(i)}
+            className="show-dot rounded-full"
+          >
+            <motion.span
+              className="block rounded-full"
+              animate={{
+                width: i === index ? 26 : 8,
+                backgroundColor: i === index ? ACCENT : "#CFC5B7",
+              }}
+              transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+              style={{ height: 8 }}
+            />
+          </button>
+        ))}
+      </div>
+
+      <Button
+        onClick={() => onStep(1)}
+        aria-label="Next screen"
+        className="show-arrow"
+        variant="icon"
+        size="lg"
+        style={{ color: INK }}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Button>
+    </div>
+
+    <p role="status" aria-live="polite" className="show-count mt-[14px]" style={{ fontSize: 13.5, color: INK_DIM }}>
+      {current.label} — {index + 1} of {SHOWCASE_SCREENS.length}
+    </p>
+    </>
+  );
+}
+
 function Header() {
+  const ref = useRef<HTMLDivElement>(null);
+  const seen = useInViewSafe(ref, { once: true });
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      animate={seen ? { opacity: 1, y: 0 } : {}}
       transition={reveal}
       className="text-center"
+      style={{ position: "relative", zIndex: 2 }}
     >
-      <p style={{
-        fontSize: 12, fontWeight: 600, letterSpacing: "0.1em",
-        textTransform: "uppercase", color: ACCENT, marginBottom: 16,
-      }}>
+      <p className="t-eyebrow" style={{ color: ACCENT, marginBottom: 16 }}>
         Inside the app
       </p>
-      <h2 id="showcase-heading" style={{
-        fontSize: "clamp(1.875rem, 4vw, 2.75rem)", fontWeight: 700, color: INK,
-        letterSpacing: "-0.03em", lineHeight: 1.08, textWrap: "balance",
+      <h2 id="showcase-heading" className="t-section-title" style={{
+        color: INK, textWrap: "balance",
       }}>
         See FitVerse in Action
       </h2>

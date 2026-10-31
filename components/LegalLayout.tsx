@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { INK } from "@/lib/tokens";
 
 interface LegalLayoutProps {
   title: string;
@@ -21,7 +22,7 @@ export default function LegalLayout({ title, lastUpdated, children }: LegalLayou
             className="font-bold mb-12"
             style={{
               fontSize: "clamp(2rem, 5vw, 2.75rem)",
-              color: "#1A1512",
+              color: INK,
               letterSpacing: "-0.03em",
               lineHeight: 1.06,
               textWrap: "balance",
