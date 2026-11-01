@@ -40,6 +40,8 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  /* Hides the round Next.js dev-tools button. Dev-only; never present in production. */
+  devIndicators: false,
   productionBrowserSourceMaps: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

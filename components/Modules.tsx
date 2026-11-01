@@ -143,9 +143,9 @@ function ModulesCarousel() {
 
   return (
     <section
-      className="lg:hidden"
+      className="lg:hidden fvm-section"
       aria-labelledby="modules-heading-m"
-      style={{ background: panels[active].bg, transition: "background-color 0.4s ease", padding: "calc(60px + 32px) 0 48px" }}
+      style={{ background: "var(--page-bg)", padding: "calc(60px + 32px) 0 48px" }}
     >
       <h2 id="modules-heading-m" className="sr-only">The FitVerse modules</h2>
       <div

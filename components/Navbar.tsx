@@ -305,11 +305,23 @@ export default function Navbar() {
   }, [mobileOpen, pricingOpen]);
 
   useEffect(() => {
-    if (pathname !== "/") { setScrolled(true); return; }
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    /* "Scrolled" means no dark section is behind the bar any more: the hero's
+       first screen, or the footer. Cream glass from there, dark glass over them. */
+    const BAR = 36;
+    const onScroll = () => {
+      const hero = document.querySelector(".fvh-hero-inner, [data-nav-dark]")?.getBoundingClientRect();
+      const foot = document.querySelector("footer")?.getBoundingClientRect();
+      const overHero = !!hero && hero.bottom > BAR;
+      const overFooter = !!foot && foot.top < BAR && foot.bottom > BAR;
+      setScrolled(!(overHero || overFooter));
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
     onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, [pathname]);
 
   /* "About" always lands on the top hero. Previously this deep-linked to
@@ -349,13 +361,11 @@ export default function Navbar() {
         initial={{ y: reduced ? 0 : -10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={springSnappy}
-        className={scrolled ? "nav-scrolled mat-thin" : ""}
+        className={scrolled ? "nav-glass nav-scrolled" : "nav-glass"}
         style={{
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
           paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)",
-          transition: "background 0.3s ease, border-color 0.3s ease",
-          background: scrolled ? undefined : "transparent",
-          borderBottom: scrolled ? undefined : "1px solid transparent",
+          transition: "background 0.3s ease, border-color 0.3s ease, color 0.3s ease",
         }}
         aria-label="Main navigation"
       >
@@ -406,6 +416,7 @@ export default function Navbar() {
               onClick={scrollToWaitlist}
               size="md"
               variant="primary"
+              className="nav-glass-btn"
               ground={scrolled ? "light" : "dark"}
               style={{ fontSize: 14 }}
             >
@@ -425,20 +436,15 @@ export default function Navbar() {
               onClick={() => setMobileOpen((v) => !v)}
               variant="icon"
               size="lg"
+              className="nav-glass-btn"
               ground={scrolled ? "light" : "dark"}
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
-              style={{ flexDirection: "column", gap: 5 }}
             >
-              {mobileOpen ? (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M15 5L5 15M5 5l10 10" stroke={scrolled ? INK : "white"} strokeWidth="1.75" strokeLinecap="round" />
-                </svg>
-              ) : [0, 1, 2].map((i) => (
-                <span key={i} className={`block h-0.5 rounded-full ${i === 2 ? "w-3.5" : "w-5"}`}
-                  style={{ background: scrolled ? INK : "white", transition: "background 0.3s" }} />
-              ))}
+              <span className="ham" data-open={mobileOpen} aria-hidden="true">
+                <i /><i /><i />
+              </span>
             </Button>
           </div>
         </div>
@@ -468,12 +474,10 @@ export default function Navbar() {
               animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
               exit={reduced ? { opacity: 0 } : { opacity: 0, y: -8 }}
               transition={reduced ? { duration: 0.18 } : springSnappy}
-              className="fixed left-0 right-0 z-[49] lg:hidden overflow-y-auto"
+              className={`fixed left-0 right-0 z-[49] lg:hidden overflow-y-auto nav-glass ${scrolled ? "nav-scrolled" : ""}`}
               style={{
                 top: 60,
                 maxHeight: "calc(100svh - 60px)",
-                background: scrolled ? "#FDFCF9" : "#121110",
-                borderBottom: `1px solid ${scrolled ? "var(--border-light)" : "rgba(255,255,255,0.12)"}`,
                 paddingLeft: "max(20px, env(safe-area-inset-left))",
                 paddingRight: "max(20px, env(safe-area-inset-right))",
                 paddingBottom: "max(24px, env(safe-area-inset-bottom))",
@@ -505,7 +509,7 @@ export default function Navbar() {
                   <StoreBadge store="google" scrolled={scrolled} />
                 </div>
                 <div className="pt-4">
-                  <Button onClick={scrollToWaitlist} size="lg" fullWidth ground={scrolled ? "light" : "dark"}>
+                  <Button onClick={scrollToWaitlist} size="lg" fullWidth className="nav-glass-btn" ground={scrolled ? "light" : "dark"}>
                     Join waitlist
                   </Button>
                 </div>

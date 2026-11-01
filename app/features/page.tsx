@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import DarkTransition from "@/components/DarkTransition";
 import FeaturesContent from "@/components/FeaturesContent";
 
 export const metadata: Metadata = {
@@ -31,10 +31,10 @@ export const metadata: Metadata = {
 export default function FeaturesPage() {
   return (
     <>
-      <Navbar />
       <main id="main">
         <FeaturesContent />
       </main>
+      <DarkTransition />
       <Footer />
     </>
   );

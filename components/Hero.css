@@ -7,9 +7,8 @@
     --ink:#F4EFE9;
     --ink-soft:#B8AFA6;
     --ink-faint:rgba(244,239,233,.12);
-    --orange:#C4521F;
-    --orange-bright:#E8743D;
-    --orange-glow:#F2A06E;
+    /* --orange, --orange-bright and --orange-glow come from :root in globals.css,
+       shared with the features page header. */
     --white:#FFFFFF;
     --glass:rgba(255,255,255,.07);
     --glass-strong:rgba(255,255,255,.12);
@@ -135,3 +134,4 @@
       backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
     .fvh-play svg{margin-left:3px}
   }
+

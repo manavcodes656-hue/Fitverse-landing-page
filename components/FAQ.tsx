@@ -191,7 +191,8 @@ export default function FAQ() {
   return (
     <section
       ref={sectionRef}
-      style={{ backgroundColor: "var(--page-bg)", padding: "clamp(80px, 12vh, 120px) 0 100px", overflow: "hidden" }}
+      className="faq-section"
+      style={{ backgroundColor: "var(--page-bg)", padding: "clamp(40px, 6vh, 56px) 0 100px", overflow: "hidden" }}
       aria-labelledby="faq-heading"
     >
       <div className="faq-wrap" style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px" }}>

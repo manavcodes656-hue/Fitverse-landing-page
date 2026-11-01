@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://fitverse.app'),
@@ -118,7 +119,11 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-body antialiased text-[#111827] bg-[var(--page-bg)]">{children}</body>
+      <body className="font-body antialiased text-[#111827] bg-[var(--page-bg)]">
+        {/* The one navbar: every route renders under it. */}
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }

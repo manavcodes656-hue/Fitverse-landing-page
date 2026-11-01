@@ -23,3 +23,19 @@ export function blend(from: string, to: string, steps = 24): string {
   });
   return `linear-gradient(180deg, ${stops.join(", ")})`;
 }
+
+/* Opaque ramp through several colours (top to bottom). `stops` are [colour,
+   position 0..1] pairs; each segment is eased the way `blend` is, so the joins
+   between colours have no visible edge. */
+export function ramp(stops: [string, number][], stepsPerSegment = 8): string {
+  const out: string[] = [];
+  for (let s = 0; s < stops.length - 1; s++) {
+    const [from, p0] = stops[s];
+    const [to, p1] = stops[s + 1];
+    for (let i = s === 0 ? 0 : 1; i <= stepsPerSegment; i++) {
+      const t = i / stepsPerSegment;
+      out.push(`color-mix(in srgb, ${to} ${pct(ease(t))}, ${from}) ${pct(p0 + (p1 - p0) * t)}`);
+    }
+  }
+  return `linear-gradient(180deg, ${out.join(", ")})`;
+}
