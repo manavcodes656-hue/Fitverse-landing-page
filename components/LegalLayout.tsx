@@ -1,4 +1,3 @@
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { INK } from "@/lib/tokens";
 
@@ -11,7 +10,6 @@ interface LegalLayoutProps {
 export default function LegalLayout({ title, lastUpdated, children }: LegalLayoutProps) {
   return (
     <>
-      <Navbar />
       <main id="main" className="pt-16">
         <div className="legal-page mx-auto" style={{ maxWidth: "760px", padding: "80px 24px" }}>
           {/* #9CA3AF on this ground measures about 2.8:1 — below the minimum. */}

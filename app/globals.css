@@ -19,6 +19,15 @@
   --page-bg:     #FDFCF9;
   --bg-primary:  var(--page-bg);
   --bg-surface:  #F5F0E8;
+
+  /* The brand orange ramp: the home hero's glow and the features page header
+     both read these, so the two pages share one orange. */
+  --o-900:         #7A2E10;
+  --o-700:         #A8411A;
+  --orange:        #C4521F;
+  --orange-bright: #E8743D;
+  --orange-glow:   #F2A06E;
+  --peach:         #F9DCC9;
   --bg-dark:     #0F0D0A;
   --bg-card:     #FFFFFF;
 
@@ -224,6 +233,38 @@ body {
 }
 
 /* ──────────────────────────────────────────────
+   NAV GLASS  —  frosted bar, its controls and the phone dropdown.
+   Dark glass over the hero; cream glass once scrolled (.nav-scrolled).
+────────────────────────────────────────────── */
+.nav-glass {
+  background: rgba(18,17,16,0.28);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+}
+.nav-glass.nav-scrolled { background: rgba(255,255,255,0.28); }
+
+/* Controls inside the bar. Button writes its fill, colour and hover fill inline,
+   so these need !important to take over. */
+.nav-glass-btn {
+  background: rgba(255,255,255,0.14) !important;
+  color: #FDFCF9 !important;
+  border: 1px solid rgba(255,255,255,0.28) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+}
+.nav-glass-btn:hover { background: rgba(255,255,255,0.24) !important; }
+.nav-scrolled .nav-glass-btn {
+  background: rgba(255,255,255,0.4) !important;
+  color: #1A1512 !important;
+  border: 1px solid rgba(255,255,255,0.5) !important;
+  box-shadow: 0 1px 3px rgba(26,21,18,0.10) !important;
+}
+.nav-scrolled .nav-glass-btn:hover { background: rgba(255,255,255,0.65) !important; }
+
+/* ──────────────────────────────────────────────
    ACCESSIBILITY  —  three independent signals
 ────────────────────────────────────────────── */
 
@@ -257,6 +298,9 @@ body {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
+  .nav-glass { background: rgba(18,17,16,0.97); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .nav-glass.nav-scrolled { background: rgba(248,244,238,0.97); }
+  .nav-glass-btn { backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 
 /* 3. Increased contrast.
@@ -355,6 +399,16 @@ h1, h2, h3, p, li { overflow-wrap: break-word; }
   .show-dot { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
 }
 
+@media (max-width: 767px) and (min-width: 360px) { .show-section { --fan-scale: 0.47; } }
+@media (max-width: 767px) and (min-width: 375px) { .show-section { --fan-scale: 0.49; } }
+@media (max-width: 767px) and (min-width: 390px) { .show-section { --fan-scale: 0.51; } }
+@media (max-width: 767px) and (min-width: 414px) { .show-section { --fan-scale: 0.55; } }
+@media (max-width: 767px) and (min-width: 430px) { .show-section { --fan-scale: 0.57; } }
+@media (max-width: 767px) and (min-width: 480px) { .show-section { --fan-scale: 0.64; } }
+@media (max-width: 767px) and (min-width: 540px) { .show-section { --fan-scale: 0.72; } }
+@media (max-width: 767px) and (min-width: 600px) { .show-section { --fan-scale: 0.81; } }
+@media (max-width: 767px) and (min-width: 680px) { .show-section { --fan-scale: 0.92; } }
+
 /* Phones (under 768px): small dots on one row between the arrows. The visible
    dot is 5px; the tap target is the 24px-tall button, with 3px of side padding
    so the visible gap between neighbours is 6px. */
@@ -366,7 +420,16 @@ h1, h2, h3, p, li { overflow-wrap: break-word; }
     --dot-on: #C4521F;
   }
   .show-controls, .fvm-controls { flex-wrap: nowrap; justify-content: center; gap: 9px; }
-  .show-controls { margin-top: 8px; }
+  /* "See FitVerse in Action" on phones. --fan-scale is the one number that sizes
+     the fan; the stage height and width are derived from it in the component.
+     It is stepped (below) so all five phones fit with ~12px a side:
+     scale <= (viewport - 24px) / 707px, where 707px is the fan's natural width. */
+  .show-section { --fan-scale: 0.41; padding: 32px 0 32px !important; }
+  .fvm-section { padding-bottom: 24px !important; }
+  .faq-section { padding-top: 32px !important; }
+  .show-group { margin-top: 16px !important; }
+  .show-caption { margin-top: 12px !important; }
+  .show-controls { margin-top: 10px !important; }
   .show-count { margin-top: 8px; font-size: 13px !important; } /* beats the inline 13.5px */
   .show-dots, .fvm-dots { flex: 0 0 auto; flex-wrap: nowrap; gap: 0; order: 0; padding: 0; }
   .show-dot, .fvm-dot { box-sizing: content-box; width: auto; height: 24px; padding: 0 3px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
@@ -378,3 +441,74 @@ h1, h2, h3, p, li { overflow-wrap: break-word; }
   .show-dot[aria-selected="true"] > span { width: var(--dot-active-w) !important; background-color: var(--dot-on) !important; }
   .show-arrow { width: 34px !important; height: 34px !important; }
 }
+
+/* ──────────────────────────────────────────────
+   FEATURES PAGE  —  built from the home page's pieces
+   .fc-*  : the module cards (FeatureCard) and the cream sections around them
+   .ham   : the mobile menu icon, shared by every page
+────────────────────────────────────────────── */
+.fc-section { background: var(--page-bg); padding: 0 0 48px; }
+/* The first module starts 28px below the header gradient, which ends on cream. */
+.fc-modules { padding-top: 28px; }
+.fc-wrap { max-width: 1120px; margin: 0 auto; padding-inline: 24px; }
+.fc-list { display: flex; flex-direction: column; gap: 48px; }
+
+/* Features header. Padding is the whole spacing story: the navbar's height plus
+   24px above the heading (60px bar on phones, 72px from 1024px), the gradient
+   reaching cream 40px (60px on desktop) under the paragraph. */
+.fx-head { padding: calc(60px + 24px) 24px 40px; text-align: center; }
+.fx-title {
+  margin: 0; font-family: var(--font-head); font-weight: 600;
+  font-size: clamp(32px, 5.6vw, 64px); line-height: 1.05; letter-spacing: -0.02em;
+  color: #fff; text-wrap: balance;
+}
+.fx-title > span { color: #F4EFE9; }
+.fx-sub {
+  margin: 12px auto 0; max-width: 46ch; font-size: 17px; line-height: 1.6;
+  color: rgba(255,255,255,0.85);
+}
+@media (min-width: 1024px) { .fx-head { padding: calc(72px + 24px) 24px 60px; } }
+
+/* Phone first, then text: one column, centred. */
+.fc { display: grid; grid-template-columns: 1fr; justify-items: center; gap: 28px; }
+.fc-text { width: 100%; max-width: 440px; }
+.tuesday-grid { display: grid; grid-template-columns: 1fr; justify-items: center; gap: 28px; align-items: center; }
+
+@media (min-width: 1024px) {
+  .fc-section { padding-bottom: 96px; }
+  .fc-list { gap: 96px; }
+  .fc { grid-template-columns: 1fr 1fr; gap: 80px; justify-items: stretch; align-items: center; }
+  .fc-phone { display: flex; justify-content: center; order: 2; }
+  .fc-text { max-width: none; }
+  .fc-flip .fc-phone { order: 1; }
+  .tuesday-grid { grid-template-columns: 1.15fr 0.85fr; justify-items: start; }
+  .tuesday-grid > :last-child { justify-self: end; }
+}
+/* Under 1024px each module is its own card, phone then text, so the phone can
+   never read as belonging to the module above or below it. */
+@media (max-width: 1023px) {
+  .fc-phone { display: flex; justify-content: center; order: 2; }
+  .fc-text { order: 1; }
+  .fc { gap: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 28px 20px 28px;
+    box-shadow: 0 20px 50px rgba(26,21,18,0.08), 0 3px 10px rgba(26,21,18,0.05);
+  }
+}
+
+/* Three 18px x 2px bars, 5px apart, centred in the 44px button; they meet in
+   the middle to form an X when the menu is open. */
+.ham { position: relative; display: block; width: 18px; height: 18px; }
+.ham > i {
+  position: absolute; left: 0; width: 18px; height: 2px; border-radius: 2px;
+  background: currentColor; transition: transform 0.25s ease, opacity 0.2s ease;
+}
+.ham > i:nth-child(1) { top: 1px; }
+.ham > i:nth-child(2) { top: 8px; }
+.ham > i:nth-child(3) { top: 15px; }
+.ham[data-open="true"] > i:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.ham[data-open="true"] > i:nth-child(2) { opacity: 0; }
+.ham[data-open="true"] > i:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+@media (prefers-reduced-motion: reduce) { .ham > i { transition: none; } }

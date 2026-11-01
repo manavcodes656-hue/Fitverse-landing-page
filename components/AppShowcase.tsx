@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 import {
   motion,
   animate,
@@ -16,6 +15,7 @@ import {
 } from "framer-motion";
 import { reveal, project, VelocityTracker, useInViewSafe } from "@/lib/motion";
 import Button from "@/components/ui/Button";
+import PhoneFrame from "@/components/ui/PhoneFrame";
 import { ACCENT, INK, INK_DIM } from "@/lib/tokens";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -107,8 +107,7 @@ const GRID_CARD_W = "clamp(148px, 16vw, 208px)";
 /* White, with only enough falloff at the edges to stop it reading as a flat
    slab and to give the outer phones something to sit against. The edge ends
    on --page-bg, the colour of the FAQ below it, so the two join without a seam. */
-const SECTION_BG =
-  "radial-gradient(125% 88% at 50% 40%, #FFFFFF 0%, #FDFBF8 52%, var(--page-bg) 100%)";
+const SECTION_BG = "var(--page-bg)";
 const SECTION_PAD = "clamp(88px, 12vh, 140px) 0";
 const STAGE_MAX = 1680;
 const STAGE_PAD = "clamp(16px, 3vw, 64px)";
@@ -143,26 +142,16 @@ type Fan = typeof FAN;
 type TierCfg = (typeof TIER)[Tier];
 type Layout = "desktop" | "tablet" | "phone";
 
-/* Phones (under 768px): the desktop fan with three phones instead of five.
-   The centre phone is 62vw wide (capped at 300px) and sits in front. Each
-   neighbour is 78% of that size and tucked behind it, overlapping the centre by
-   35% of the neighbour's own width, turned ROTATE_Y degrees and pushed back. The
-   third rank is the exit rank, fully transparent, so only three are ever seen. */
-const PHONE_W = "min(62vw, 300px)";
-const SIDE_SCALE = 0.78;
-const SIDE_OVERLAP = 0.35;
-const ROTATE_Y = 8;
-/* Centre of a neighbour from the centre phone's centre, in centre-phone widths:
-   half the centre, minus the overlap, plus half the neighbour. */
-const SIDE_X = 0.5 - SIDE_OVERLAP * SIDE_SCALE + SIDE_SCALE / 2;
-const PHONE_T: TierCfg = { xMul: 1, zMul: 1, perspective: 1500, outerOpacity: 0, lift: 0 };
-const PHONE_FAN: Fan = {
-  x: [0, SIDE_X, SIDE_X + 0.5, SIDE_X + 0.7],
-  z: [0, -70, -130, -170],
-  rotate: [0, ROTATE_Y, ROTATE_Y + 4, ROTATE_Y + 6],
-  scale: [1, SIDE_SCALE, 0.6, 0.5],
-  opacity: [1, 0.85, 0, 0],
-};
+/* Phones (under 768px): no separate geometry. The fan below is the desktop fan
+   (FAN + TIER.wide, 262px centre phone) laid out at its natural size, then the
+   whole stage is scaled down uniformly by --fan-scale (globals.css). Same arc, angles, fade
+   and overlaps, just smaller. */
+const FAN_CARD_PX = 262;
+/* Enlarged centre phone height — what the stage reserves. */
+const STAGE_H = FAN_CARD_PX * (19.5 / 9) * 1.035;
+/* Phone-only depth fade; position, shape and shadows still come from FAN. */
+const PHONE_FAN_OPACITY: Fan = { ...FAN, opacity: [1, 0.75, 0.5, 0] };
+const PHONE_FILTER = ["saturate(1) brightness(1)", "saturate(0.7) brightness(0.92)", "saturate(0.5) brightness(0.85)", "saturate(0.5) brightness(0.85)"];
 
 /** Settle after a release. Critically damped — a fan that bounces past the
     card you threw it at reads as sloppy, not playful. */
@@ -172,101 +161,6 @@ const SETTLE = { type: "spring" as const, bounce: 0, duration: 0.72 };
 function wrapSlots(d: number, n: number): number {
   const x = ((d % n) + n) % n;
   return x > n / 2 ? x - n : x;
-}
-
-/* Layered shadow rather than one hard drop. Per §12 a bigger surface reads as
-   thicker, so the outer layer is deep and soft while two tighter layers keep
-   the frame anchored. `depth` lightens all of it for receded ranks — something
-   further back sits closer to its ground and casts less. A negative depth
-   deepens it, which is what the hover lift uses. */
-function frameShadow(depth: number) {
-  const d = Math.min(depth, 2);
-  return [
-    `0 2px 6px rgba(15,13,10,${(0.10 - d * 0.03).toFixed(3)})`,
-    `0 ${14 - d * 3}px ${32 - d * 6}px rgba(15,13,10,${(0.13 - d * 0.035).toFixed(3)})`,
-    `0 ${44 - d * 10}px ${88 - d * 20}px rgba(15,13,10,${(0.20 - d * 0.055).toFixed(3)})`,
-    `inset 0 1px 0 rgba(255,255,255,0.16)`,
-  ].join(", ");
-}
-
-function PhoneFrame({
-  screen,
-  depth = 0,
-  width = CARD_W,
-}: {
-  screen: ShowcaseScreen;
-  depth?: number;
-  width?: string;
-}) {
-  return (
-    <div
-      style={{
-        width,
-        aspectRatio: "9 / 19.5",
-        borderRadius: "clamp(28px, 7vw, 38px)",
-        padding: 9,
-        background: "linear-gradient(160deg, #2A2521 0%, #0F0D0A 55%, #241F1B 100%)",
-        boxShadow: frameShadow(depth),
-        transition: "box-shadow 240ms ease-out",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          borderRadius: "clamp(20px, 5.4vw, 30px)",
-          overflow: "hidden",
-          position: "relative",
-          background: screen.image ? "#0F0D0A" : screen.tint,
-        }}
-      >
-        {screen.image ? (
-          <Image
-            src={screen.image}
-            alt={screen.label}
-            fill
-            sizes="(max-width: 768px) 62vw, 262px"
-            style={{ objectFit: "cover" }}
-          />
-        ) : (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
-              backgroundSize: "26px 26px",
-            }}
-          >
-            <span style={{
-              fontSize: 10.5, fontWeight: 600, letterSpacing: "0.1em",
-              textTransform: "uppercase", color: "rgba(255,255,255,0.55)",
-            }}>
-              Placeholder
-            </span>
-            <span style={{
-              fontSize: "clamp(15px, 4vw, 19px)", fontWeight: 700,
-              letterSpacing: "-0.02em", color: "rgba(255,255,255,0.94)",
-            }}>
-              {screen.label}
-            </span>
-          </div>
-        )}
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute", top: "1.9%", left: "50%", transform: "translateX(-50%)",
-            width: "27%", height: "3.4%", minHeight: 14, borderRadius: 100, background: "#0F0D0A",
-          }}
-        />
-      </div>
-    </div>
-  );
 }
 
 /* ── One card on the fan ──────────────────────────────────────────────────── */
@@ -279,6 +173,7 @@ function FanCard({
   fan,
   t,
   hoverable,
+  fade,
   cardWCss,
   revealed,
   reachable,
@@ -292,6 +187,8 @@ function FanCard({
   fan: Fan;
   t: TierCfg;
   hoverable: boolean;
+  /** Phones: dim and desaturate the receded ranks. */
+  fade: boolean;
   cardWCss: string;
   revealed: boolean;
   reachable: boolean;
@@ -349,6 +246,11 @@ function FanCard({
     [0, 0, t.outerOpacity, fan.opacity[1], 1, fan.opacity[1], t.outerOpacity, 0, 0]
   );
 
+  const filter = useTransform(rel, stops, [
+    PHONE_FILTER[3], PHONE_FILTER[3], PHONE_FILTER[2], PHONE_FILTER[1], PHONE_FILTER[0],
+    PHONE_FILTER[1], PHONE_FILTER[2], PHONE_FILTER[3], PHONE_FILTER[3],
+  ]);
+
   const canHover = hoverable && reachable;
 
   return (
@@ -363,6 +265,7 @@ function FanCard({
         width: "max-content",
         height: "max-content",
         x, y, z, rotateY, scale, opacity,
+        ...(fade ? { filter } : {}),
         transformStyle: "preserve-3d",
         willChange: "transform, opacity",
         pointerEvents: reachable ? "auto" : "none",
@@ -391,6 +294,7 @@ function FanCard({
 function useFanLayout() {
   const [tier, setTier] = useState<Tier>("wide");
   const [layout, setLayout] = useState<Layout>("desktop");
+  const [vw, setVw] = useState(390);
   useEffect(() => {
     const small = window.matchMedia("(max-width: 640px)");
     const medium = window.matchMedia("(max-width: 1280px)");
@@ -399,13 +303,16 @@ function useFanLayout() {
     const all = [small, medium, phoneMq, tabletMq];
     const sync = () => {
       setTier(small.matches ? "narrow" : medium.matches ? "mid" : "wide");
+      setVw(document.documentElement.clientWidth);
       setLayout(phoneMq.matches ? "phone" : tabletMq.matches ? "tablet" : "desktop");
     };
     sync();
     all.forEach((mq) => mq.addEventListener("change", sync));
+    window.addEventListener("resize", sync);
     return () => all.forEach((mq) => mq.removeEventListener("change", sync));
+      window.removeEventListener("resize", sync);
   }, []);
-  return { tier, layout };
+  return { tier, layout, vw };
 }
 
 export default function AppShowcase() {
@@ -454,8 +361,9 @@ export default function AppShowcase() {
 
   const slideTo = useCallback((target: number, velocity = 0) => {
     settle.current?.stop();
-    settle.current = animate(pos, target, { ...SETTLE, velocity });
-  }, [pos]);
+    /* Phones: 450ms slot move; opacity, filter and position share it. */
+    settle.current = animate(pos, target, { ...SETTLE, ...(layout === "phone" ? { duration: 0.45 } : {}), velocity });
+  }, [pos, layout]);
 
   /* Always travel the short way round. */
   const goToIndex = useCallback((i: number) => {
@@ -470,7 +378,12 @@ export default function AppShowcase() {
   }, [pos, slideTo]);
 
   /* ── Pointer drag ──────────────────────────────────────────────────────── */
-  const slotsPerPx = () => 1 / (cardW * (layout === "phone" ? 0.7 : 1.05));
+  /* The fan scale lives in CSS (--fan-scale); swipe distance needs the same number. */
+  const fanScale = () =>
+    layout === "phone" && sizerRef.current
+      ? parseFloat(getComputedStyle(sizerRef.current).getPropertyValue("--fan-scale")) || 1
+      : 1;
+  const slotsPerPx = () => 1 / (cardW * fanScale() * 1.05);
 
   const onPointerDown = (e: React.PointerEvent) => {
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* pointer already gone */ }
@@ -521,13 +434,13 @@ export default function AppShowcase() {
   };
 
   const phone = layout === "phone";
-  const t: TierCfg = phone ? PHONE_T : layout === "tablet" ? { ...TIER[tier], outerOpacity: 0 } : TIER[tier];
-  const fan: Fan = phone ? PHONE_FAN : FAN;
-  const cardWCss = phone ? PHONE_W : CARD_W;
+  const t: TierCfg = phone ? { ...TIER.wide, outerOpacity: 0.5 } : layout === "tablet" ? { ...TIER[tier], outerOpacity: 0 } : TIER[tier];
+  const fan: Fan = phone ? PHONE_FAN_OPACITY : FAN;
+  const cardWCss = phone ? `${FAN_CARD_PX}px` : CARD_W;
   const current = SHOWCASE_SCREENS[index];
   /* Only the five on the fan accept clicks — anything waiting off the ends is
      invisible and must not be hit-testable. */
-  const reachable = (i: number) => Math.abs(wrapSlots(i - index, count)) <= (layout === "desktop" ? 2 : 1);
+  const reachable = (i: number) => Math.abs(wrapSlots(i - index, count)) <= (layout === "tablet" ? 1 : 2);
 
   /* ── Reduced motion: a static grid, no 3D, no drag, nothing moves. ── */
   if (reduced) {
@@ -556,8 +469,8 @@ export default function AppShowcase() {
   return (
     <section
       ref={sectionRef}
-      className="overflow-hidden"
-      style={{ background: SECTION_BG, padding: "48px 0 40px" }}
+      className="overflow-hidden show-section"
+      style={{ background: SECTION_BG, padding: phone ? "32px 0 32px" : "48px 0 40px" }}
       aria-labelledby="showcase-heading"
     >
       {/* Heading stays in the reading container — running text edge to edge is
@@ -569,7 +482,7 @@ export default function AppShowcase() {
       {/* Everything below is full-bleed. The outer rank is meant to crop
           against the edges, as it does in the reference. */}
       <div
-        className="w-full flex flex-col items-center mt-5"
+        className="w-full flex flex-col items-center mt-5 show-group"
         role="group"
         aria-roledescription="carousel"
         aria-label="FitVerse app screens"
@@ -590,12 +503,23 @@ export default function AppShowcase() {
         <div ref={sizerRef} aria-hidden="true"
              style={{ position: "absolute", width: cardWCss, height: 0, visibility: "hidden", pointerEvents: "none" }} />
 
-        {/* Stage */}
+        {/* Phones: the stage is laid out at desktop size inside a box that is
+            scaled down; the wrapper reserves the scaled height (scale() does not
+            change layout size) so the heading and caption keep desktop gaps. */}
+        <div
+          style={phone ? { position: "relative", width: "100%", height: `calc(${STAGE_H}px * var(--fan-scale))` } : undefined}
+        >
+        <div
+          style={phone ? {
+            position: "absolute", top: 0, left: "50%", width: "calc(100% / var(--fan-scale))",
+            transform: "translateX(-50%) scale(var(--fan-scale))", transformOrigin: "50% 0",
+          } : undefined}
+        >
         <div
           className="relative w-full"
           style={{
             /* Sized to the ENLARGED centre phone (rest height x 1.035) exactly, so the hover scale fills spare room instead of spilling. Rest: 262px wide, 568px tall; enlarged and min-height 588px. */
-            minHeight: `calc(${phone ? PHONE_W : "clamp(190px, 54vw, 262px)"} * 19.5 / 9 * 1.035)`,
+            minHeight: phone ? STAGE_H : `calc(clamp(190px, 54vw, 262px) * 19.5 / 9 * 1.035)`,
             perspective: t.perspective,
             perspectiveOrigin: "50% 50%",
             transformStyle: "preserve-3d",
@@ -618,6 +542,7 @@ export default function AppShowcase() {
               fan={fan}
               t={t}
               hoverable={!phone}
+              fade={phone}
               cardWCss={cardWCss}
               revealed={revealed}
               reachable={reachable(i)}
@@ -625,9 +550,11 @@ export default function AppShowcase() {
             />
           ))}
         </div>
+        </div>
+        </div>
 
         {/* Caption — restaggers whenever the active card changes. */}
-        <div style={{ height: 26, marginTop: 16, position: "relative", zIndex: 2 }}>
+        <div className="show-caption" style={{ height: 26, marginTop: 16, position: "relative", zIndex: 2 }}>
           <AnimatePresence mode="wait">
             <motion.p
               key={index}
